@@ -47,8 +47,8 @@ public class LightState extends SubAppState {
 
     @Override
     protected void initialize(Application app) {
-        // 初始化游戏时间
-        gameDate = new GameDate(21600);// 6:00 AM
+        // 初始化游戏时间 — 12:45 for best lighting
+        gameDate = new GameDate(45900);// 12:45 PM
         cam = app.getCamera();
         viewPort = app.getViewPort();
 
