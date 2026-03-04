@@ -22,6 +22,8 @@ public class AmbientAppState extends SubAppState {
     protected void initialize(Application app) {
         getMaterial(new ColorRGBA(0f, 1f, 1f, 1f));
         defaultMat.getAdditionalRenderState().setWireframe(true);
+        // Inicia desabilitado (usuario ativa via checkbox "Mostrar Efeitos")
+        setEnabled(false);
     }
 
     /**

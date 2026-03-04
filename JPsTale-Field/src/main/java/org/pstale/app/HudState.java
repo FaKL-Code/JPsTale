@@ -361,7 +361,7 @@ public class HudState extends BaseAppState {
         collisionRef = temp.getModel().createReference();
 
         temp = window.addChild(new Checkbox("Mostrar Efeitos"));
-        temp.setChecked(true);
+        temp.setChecked(false);
         showEffectsRef = temp.getModel().createReference();
 
         window.addChild(new Label("Vel. Camera:"));
