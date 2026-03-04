@@ -96,7 +96,7 @@ public class CollisionState extends BaseAppState {
         inputManager.addMapping(RIGHT, new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping(FORWARD, new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping(BACKWARD, new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping(JUMP, new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping(JUMP, new KeyTrigger(KeyInput.KEY_F));
         inputManager.addListener(myListener, LEFT, RIGHT, FORWARD, BACKWARD, JUMP);
     }
 
@@ -193,7 +193,7 @@ public class CollisionState extends BaseAppState {
      * 设置原点，发出一条垂直向下的射线与地形的网格进行碰撞检测。
      * 
      * @param orgin
-     *            原点
+     *              原点
      * @return
      */
     CollisionResult getCollisionResult(Vector3f orgin) {
