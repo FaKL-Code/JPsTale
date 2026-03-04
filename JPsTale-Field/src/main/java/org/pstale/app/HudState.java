@@ -71,21 +71,24 @@ public class HudState extends BaseAppState {
 
     /**
      * Returns true if the mouse cursor is currently inside the bounds of any
-     * registered GUI panel.  Uses a direct AABB hit-test against each panel's
+     * registered GUI panel. Uses a direct AABB hit-test against each panel's
      * world position and resolved Lemur size — no event listeners involved.
      */
     public boolean isMouseOverPanel() {
         Application app = getApplication();
-        if (app == null) return false;
+        if (app == null)
+            return false;
         com.jme3.math.Vector2f cursor = app.getInputManager().getCursorPosition();
         for (Container panel : trackedPanels) {
-            if (panel.getParent() == null) continue; // not currently in scene
-            com.jme3.math.Vector3f pos  = panel.getWorldTranslation();
+            if (panel.getParent() == null)
+                continue; // not currently in scene
+            com.jme3.math.Vector3f pos = panel.getWorldTranslation();
             com.jme3.math.Vector3f size = panel.getSize();
-            if (size == null || size.x <= 0 || size.y <= 0) continue;
+            if (size == null || size.x <= 0 || size.y <= 0)
+                continue;
             // Lemur GUI: origin = top-left corner, Y axis goes upward
-            //   x: [pos.x  ..  pos.x + size.x]
-            //   y: [pos.y - size.y  ..  pos.y]
+            // x: [pos.x .. pos.x + size.x]
+            // y: [pos.y - size.y .. pos.y]
             if (cursor.x >= pos.x && cursor.x <= pos.x + size.x
                     && cursor.y >= pos.y - size.y && cursor.y <= pos.y) {
                 return true;

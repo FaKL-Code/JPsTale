@@ -78,7 +78,7 @@ public class FieldApp extends SimpleApplication implements ActionListener, Analo
         // Register our own scroll mappings — FlyCam's zoom triggers will be
         // removed on the first simpleUpdate(), after FlyCamAppState has finished
         // initializing (it runs AFTER simpleInitApp in jME 3.1).
-        inputManager.addMapping("ScrollZoomIn",  new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+        inputManager.addMapping("ScrollZoomIn", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
         inputManager.addMapping("ScrollZoomOut", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
         inputManager.addListener(this, "ScrollZoomIn", "ScrollZoomOut");
 
@@ -137,18 +137,19 @@ public class FieldApp extends SimpleApplication implements ActionListener, Analo
     public void onAnalog(String name, float value, float tpf) {
         // Block camera zoom when cursor is hovering over any GUI panel
         HudState hud = stateManager.getState(HudState.class);
-        if (hud != null && hud.isMouseOverPanel()) return;
+        if (hud != null && hud.isMouseOverPanel())
+            return;
 
-        float near   = cam.getFrustumNear();
-        float far    = cam.getFrustumFar();
-        float top    = cam.getFrustumTop();
+        float near = cam.getFrustumNear();
+        float far = cam.getFrustumFar();
+        float top = cam.getFrustumTop();
         float aspect = (float) cam.getWidth() / cam.getHeight();
-        double fov   = Math.toDegrees(2.0 * Math.atan(top / near));
+        double fov = Math.toDegrees(2.0 * Math.atan(top / near));
 
         if ("ScrollZoomIn".equals(name)) {
-            fov -= value * FOV_ZOOM_SPEED;   // reduce FOV → zoom in
+            fov -= value * FOV_ZOOM_SPEED; // reduce FOV → zoom in
         } else {
-            fov += value * FOV_ZOOM_SPEED;   // increase FOV → zoom out
+            fov += value * FOV_ZOOM_SPEED; // increase FOV → zoom out
         }
         fov = Math.max(MIN_FOV, Math.min(MAX_FOV, fov));
 
@@ -162,7 +163,7 @@ public class FieldApp extends SimpleApplication implements ActionListener, Analo
         // earliest moment FlyCamAppState is fully initialized in jME 3.1.
         if (!scrollFixApplied) {
             if (inputManager.hasMapping("FLYCAM_ZoomIn")) {
-                inputManager.deleteTrigger("FLYCAM_ZoomIn",  new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+                inputManager.deleteTrigger("FLYCAM_ZoomIn", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
             }
             if (inputManager.hasMapping("FLYCAM_ZoomOut")) {
                 inputManager.deleteTrigger("FLYCAM_ZoomOut", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
