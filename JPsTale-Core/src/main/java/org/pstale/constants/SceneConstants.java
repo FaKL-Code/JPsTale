@@ -22,4 +22,10 @@ public class SceneConstants {
      * 场景缩放系数
      */
     public static float scale = 0.5f;
+
+    /**
+     * 渲染距离 (camera far frustum plane)
+     * Valores disponíveis: 2000, 5000, 10000, 20000, 50000
+     */
+    public static float RENDER_DISTANCE = 10000f;
 }

@@ -86,6 +86,7 @@ public final class Main extends JFrame {
     private JCheckBox serverBox = null;
     private JTextField serverRootTxt = null;
     private JTextField clientRootTxt = null;
+    private JComboBox<String> renderDistCombo = null;
 
     // 程序允许的最低分辨率
     private int minWidth = 800;
@@ -386,6 +387,15 @@ public final class Main extends JFrame {
         gammaBox = new JCheckBox(resourceBundle.getString("checkbox.gamma"));
         gammaBox.setSelected(source.isGammaCorrection());
 
+        renderDistCombo = new JComboBox<String>(new String[] { "2000", "5000", "10000", "20000", "50000" });
+        renderDistCombo.addKeyListener(aListener);
+        int savedRenderDist = source.getInteger("RenderDistance");
+        if (savedRenderDist > 0) {
+            renderDistCombo.setSelectedItem(String.valueOf(savedRenderDist));
+        } else {
+            renderDistCombo.setSelectedItem("10000");
+        }
+
         gbc = new GridBagConstraints();
         gbc.weightx = 0.5;
         gbc.gridx = 0;
@@ -459,6 +469,20 @@ public final class Main extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         mainPanel.add(antialiasCombo, gbc);
 
+        gbc = new GridBagConstraints();
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.weightx = 0.5;
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.EAST;
+        mainPanel.add(new JLabel(resourceBundle.getString("label.renderdistance")), gbc);
+        gbc = new GridBagConstraints();
+        gbc.weightx = 0.5;
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.WEST;
+        mainPanel.add(renderDistCombo, gbc);
+
         this.getContentPane().add(mainPanel);
 
         JPanel southPanel = new JPanel(new GridBagLayout());
@@ -484,14 +508,14 @@ public final class Main extends JFrame {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridwidth = 2;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.anchor = GridBagConstraints.EAST;
         southPanel.add(ok, gbc);
         gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 16, 4, 4);
         gbc.gridx = 2;
         gbc.gridwidth = 2;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.anchor = GridBagConstraints.WEST;
         southPanel.add(cancel, gbc);
 
@@ -609,6 +633,10 @@ public final class Main extends JFrame {
             source.setGammaCorrection(gamma);
             // source.setRenderer(renderer);
             source.setSamples(multisample);
+
+            String renderDistStr = (String) renderDistCombo.getSelectedItem();
+            int renderDistance = Integer.parseInt(renderDistStr);
+            source.putInteger("RenderDistance", renderDistance);
 
             try {
                 source.save(TITLE);
