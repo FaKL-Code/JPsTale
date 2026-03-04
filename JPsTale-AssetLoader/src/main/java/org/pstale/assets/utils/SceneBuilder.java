@@ -30,7 +30,7 @@ import com.jme3.util.TempVars;
 public class SceneBuilder {
 
     static Logger logger = LoggerFactory.getLogger(SceneBuilder.class);
-    
+
     /**
      * 精灵的动画使用3DS MAX的默认速率，每秒30Tick，每Tick共160帧。 也就是每秒4800帧。
      * 
@@ -54,7 +54,8 @@ public class SceneBuilder {
 
     /**
      * 生成STAGE3D对象
-     * @param name 
+     * 
+     * @param name
      * 
      * @return
      */
@@ -132,17 +133,17 @@ public class SceneBuilder {
             // 应用动画
             if (m.WindMeshBottom != 0 && (m.UseState & sMATS_SCRIPT_BLINK_COLOR) == 0) {
                 switch (m.WindMeshBottom & 0x07FF) {
-                case sMATS_SCRIPT_WINDX1:
-                case sMATS_SCRIPT_WINDX2:
-                case sMATS_SCRIPT_WINDZ1:
-                case sMATS_SCRIPT_WINDZ2: {
-                    geom.addControl(new WindAnimationControl(m.WindMeshBottom & 0x07FF));
-                    break;
-                }
-                case sMATS_SCRIPT_WATER: {
-                    mat = AssetFactory.createRoundMaterial(m);
-                    break;
-                }
+                    case sMATS_SCRIPT_WINDX1:
+                    case sMATS_SCRIPT_WINDX2:
+                    case sMATS_SCRIPT_WINDZ1:
+                    case sMATS_SCRIPT_WINDZ2: {
+                        geom.addControl(new WindAnimationControl(m.WindMeshBottom & 0x07FF));
+                        break;
+                    }
+                    case sMATS_SCRIPT_WATER: {
+                        mat = AssetFactory.createRoundMaterial(m);
+                        break;
+                    }
                 }
             }
 
@@ -156,7 +157,6 @@ public class SceneBuilder {
             geom.setUserData("BlendType", m.BlendType);
             geom.setUserData("MapOpacity", m.MapOpacity);
             geom.setUserData("Transparency", m.Transparency);
-
             rootNode.attachChild(geom);
 
             // 透明度
@@ -189,7 +189,7 @@ public class SceneBuilder {
 
         return rootNode;
     }
-    
+
     /**********************************
      * STAGE3D
      */
@@ -253,13 +253,13 @@ public class SceneBuilder {
      * 由于网格中不同的面所应用的材质不同，需要根据材质来对网格进行分组，将相同材质的面单独取出来，做成一个独立的网格。
      * 
      * @param stage
-     *            STAGE3D对象
+     *                    STAGE3D对象
      * @param size
-     *            面数
+     *                    面数
      * @param mat_id
-     *            材质编号
+     *                    材质编号
      * @param orginNormal
-     *            法线
+     *                    法线
      * @return
      */
     public static Mesh buildMesh(Stage stage, int size, int mat_id, Vector3f[] orginNormal) {

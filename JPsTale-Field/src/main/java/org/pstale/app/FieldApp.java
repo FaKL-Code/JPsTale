@@ -75,7 +75,7 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         cam.setFrustumNear(1f);
 
         flyCam.setMoveSpeed(1000);
-        flyCam.setZoomSpeed(50);
+        flyCam.setZoomSpeed(-50);
         flyCam.setDragToRotate(true);
         inputManager.addMapping("FLYCAM_RotateDrag", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 

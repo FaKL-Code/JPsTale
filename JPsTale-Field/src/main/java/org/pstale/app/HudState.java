@@ -49,6 +49,7 @@ public class HudState extends BaseAppState {
     private VersionedReference<Boolean> showAxisRef;
     private VersionedReference<Boolean> showMeshRef;
     private VersionedReference<Boolean> collisionRef;
+    private VersionedReference<Boolean> showEffectsRef;
     private VersionedReference<Double> speedRef;
 
     private VersionedList<String> npcList = new VersionedList<String>();
@@ -122,6 +123,12 @@ public class HudState extends BaseAppState {
             CollisionState collision = getStateManager().getState(CollisionState.class);
             if (collision != null) {
                 collision.toggle(collisionRef.get());
+            }
+        }
+        if (showEffectsRef.update()) {
+            AmbientAppState ambient = getStateManager().getState(AmbientAppState.class);
+            if (ambient != null) {
+                ambient.setEnabled(showEffectsRef.get());
             }
         }
         if (speedRef.update()) {
@@ -307,6 +314,10 @@ public class HudState extends BaseAppState {
         temp = window.addChild(new Checkbox("Colisao"));
         temp.setChecked(false);
         collisionRef = temp.getModel().createReference();
+
+        temp = window.addChild(new Checkbox("Mostrar Efeitos"));
+        temp.setChecked(true);
+        showEffectsRef = temp.getModel().createReference();
 
         window.addChild(new Label("Vel. Camera:"));
         DefaultRangedValueModel model = new DefaultRangedValueModel(0, 1000, 1000);

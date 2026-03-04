@@ -17,8 +17,12 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import com.simsilica.lemur.core.CommandMap;
+import com.simsilica.lemur.focus.FocusNavigationFunctions;
+import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.Attributes;
 import com.simsilica.lemur.style.Styles;
+
+import com.jme3.input.KeyInput;
 
 public class Style {
 
@@ -34,6 +38,11 @@ public class Style {
         GuiGlobals.initialize(app);
 
         gui = GuiGlobals.getInstance();
+
+        // Remove Space bar from Lemur's GUI activation so it doesn't
+        // interact with focused UI elements (buttons, checkboxes, etc.)
+        InputMapper inputMapper = gui.getInputMapper();
+        inputMapper.removeMapping(FocusNavigationFunctions.F_ACTIVATE, KeyInput.KEY_SPACE);
 
         styles = gui.getStyles();
 
