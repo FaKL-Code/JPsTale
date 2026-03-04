@@ -125,11 +125,18 @@ public class PAT3D extends Flyweight {
         SmdFileHeader header = new SmdFileHeader();
         header.loadData(in);
 
+        // Ver 0.66 files do not contain the ObjInfo section between the
+        // header and the MaterialGroup. Reading it would shift the stream
+        // by 40 bytes and corrupt every subsequent structure.
+        boolean hasObjInfo = !header.header.contains("0.66");
+
         // 读取Obj3D物体信息
         SmdFileObjInfo[] FileObjInfo = new SmdFileObjInfo[header.objCounter];
-        for (int i = 0; i < header.objCounter; i++) {
-            FileObjInfo[i] = new SmdFileObjInfo();
-            FileObjInfo[i].loadData(in);
+        if (hasObjInfo) {
+            for (int i = 0; i < header.objCounter; i++) {
+                FileObjInfo[i] = new SmdFileObjInfo();
+                FileObjInfo[i].loadData(in);
+            }
         }
 
         // 记录文件头中的动画的帧数，拷贝每帧的数据。
@@ -143,6 +150,9 @@ public class PAT3D extends Flyweight {
         if (header.matCounter > 0) {
             materialGroup = new MaterialGroup();
             materialGroup.loadData(in);
+            logger.info("SMD version='{}' hasObjInfo={} materialCount={}",
+                    header.header, hasObjInfo,
+                    materialGroup.materialCount);
         }
 
         /**
@@ -169,9 +179,18 @@ public class PAT3D extends Flyweight {
 
         // 读取全部3D对象
         for (int i = 0; i < header.objCounter; i++) {
+            // In Ver 0.66 the per-object ObjInfo (40 bytes) is embedded
+            // immediately before each GeomObject instead of in a separate
+            // section after the file header.
+            if (!hasObjInfo) {
+                SmdFileObjInfo embeddedInfo = new SmdFileObjInfo();
+                embeddedInfo.loadData(in);
+            }
             GeomObject obj = new GeomObject();
             // 读取OBJ3D对象，共2236字节
             obj.loadData(in);
+            logger.info("GeomObject[{}] nVertex={} nFace={} nTexLink={} NodeName='{}'",
+                    i, obj.nVertex, obj.nFace, obj.nTexLink, obj.NodeName);
             obj.loadFile(in);
             addObject(obj);
         }
@@ -273,7 +292,7 @@ public class PAT3D extends Flyweight {
         }
         return null;
     }
-    
+
     /**
      * 根据结点名称，查询对象的索引号。
      * 

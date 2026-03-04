@@ -326,7 +326,9 @@ public class GeomObject extends Flyweight {
         for (int i = 0; i < nTexLink; i++) {
             if (TexLink[i].lpNextTex != 0) {
                 int index = (TexLink[i].lpNextTex - lpOldTexLink) / 32;
-                TexLink[i].NextTex = TexLink[index];
+                if (index >= 0 && index < nTexLink) {
+                    TexLink[i].NextTex = TexLink[index];
+                }
             }
         }
 
@@ -334,7 +336,9 @@ public class GeomObject extends Flyweight {
         for (int i = 0; i < nFace; i++) {
             if (Face[i].lpTexLink != 0) {
                 int index = (Face[i].lpTexLink - lpOldTexLink) / 32;
-                Face[i].TexLink = TexLink[index];
+                if (index >= 0 && index < nTexLink) {
+                    Face[i].TexLink = TexLink[index];
+                }
             }
         }
     }

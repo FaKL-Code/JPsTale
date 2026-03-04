@@ -416,6 +416,11 @@ public class AssetFactory {
      * If a texture exceeds MAX_TEXTURE_SIZE in any dimension, downscale it
      * using java.awt so it fits within the limit. This prevents
      * OutOfMemoryError caused by oversized custom PNG textures.
+     *
+     * Uses TYPE_INT_ARGB as the intermediate BufferedImage type to avoid
+     * any byte-order or pre-multiplied-alpha artifacts that occur with
+     * TYPE_4BYTE_ABGR / TYPE_3BYTE_BGR during Graphics2D compositing.
+     * The output image uses the same pixel format as the source.
      */
     private static Texture clampTextureSize(Texture texture) {
         com.jme3.texture.Image img = texture.getImage();
@@ -427,59 +432,109 @@ public class AssetFactory {
 
         logger.info("Downscaling oversized texture {}x{} -> max {}", w, h, MAX_TEXTURE_SIZE);
 
-        // Compute new dimensions preserving aspect ratio
         float scale = Math.min((float) MAX_TEXTURE_SIZE / w, (float) MAX_TEXTURE_SIZE / h);
         int newW = Math.max(1, (int) (w * scale));
         int newH = Math.max(1, (int) (h * scale));
 
         try {
-            // Convert jME Image to BufferedImage
             ByteBuffer buf = img.getData(0);
+            if (buf == null)
+                return texture;
             buf.rewind();
-            boolean hasAlpha = img.getFormat() == Format.RGBA8
-                    || img.getFormat() == Format.BGRA8
-                    || img.getFormat() == Format.ABGR8;
-            int srcType = hasAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR;
-            int channels = hasAlpha ? 4 : 3;
-            BufferedImage srcImg = new BufferedImage(w, h, srcType);
+            Format fmt = img.getFormat();
+
+            int bpp = fmt.getBitsPerPixel() / 8;
+            if (bpp < 3 || bpp > 4) {
+                logger.warn("Unsupported format {} for downscale, skipping", fmt);
+                return texture;
+            }
+
+            // --- Decode source pixels into a plain INT_ARGB image ---
+            // Using TYPE_INT_ARGB avoids any sub-format byte-order or
+            // pre-multiplied-alpha issues during the scaling step.
+            BufferedImage srcImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
-                    int r = buf.get() & 0xFF;
-                    int g = buf.get() & 0xFF;
-                    int b = buf.get() & 0xFF;
-                    int a = hasAlpha ? (buf.get() & 0xFF) : 255;
+                    int r, g, b, a;
+                    if (fmt == Format.ABGR8) {
+                        a = buf.get() & 0xFF;
+                        b = buf.get() & 0xFF;
+                        g = buf.get() & 0xFF;
+                        r = buf.get() & 0xFF;
+                    } else if (fmt == Format.BGRA8) {
+                        b = buf.get() & 0xFF;
+                        g = buf.get() & 0xFF;
+                        r = buf.get() & 0xFF;
+                        a = buf.get() & 0xFF;
+                    } else if (fmt == Format.RGBA8) {
+                        r = buf.get() & 0xFF;
+                        g = buf.get() & 0xFF;
+                        b = buf.get() & 0xFF;
+                        a = buf.get() & 0xFF;
+                    } else if (fmt == Format.BGR8) {
+                        b = buf.get() & 0xFF;
+                        g = buf.get() & 0xFF;
+                        r = buf.get() & 0xFF;
+                        a = 255;
+                    } else {
+                        // RGB8 or other 3-byte format
+                        r = buf.get() & 0xFF;
+                        g = buf.get() & 0xFF;
+                        b = buf.get() & 0xFF;
+                        a = 255;
+                    }
                     srcImg.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
                 }
             }
 
-            // Resize
-            BufferedImage dstImg = new BufferedImage(newW, newH,
-                    hasAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+            // --- Scale into another TYPE_INT_ARGB ---
+            BufferedImage dstImg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = dstImg.createGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             g2d.drawImage(srcImg, 0, 0, newW, newH, null);
             g2d.dispose();
 
-            // Convert back to jME Image
-            ByteBuffer newBuf = BufferUtils.createByteBuffer(newW * newH * channels);
+            // --- Encode back to the original jME pixel format ---
+            ByteBuffer newBuf = BufferUtils.createByteBuffer(newW * newH * bpp);
             for (int y = 0; y < newH; y++) {
                 for (int x = 0; x < newW; x++) {
-                    int argb = dstImg.getRGB(x, y);
-                    newBuf.put((byte) ((argb >> 16) & 0xFF)); // R
-                    newBuf.put((byte) ((argb >> 8) & 0xFF)); // G
-                    newBuf.put((byte) (argb & 0xFF)); // B
-                    if (hasAlpha) {
-                        newBuf.put((byte) ((argb >> 24) & 0xFF)); // A
+                    int argb = dstImg.getRGB(x, y); // always 0xAARRGGBB
+                    int r2 = (argb >> 16) & 0xFF;
+                    int g2 = (argb >> 8) & 0xFF;
+                    int b2 = argb & 0xFF;
+                    int a2 = (argb >> 24) & 0xFF;
+                    if (fmt == Format.ABGR8) {
+                        newBuf.put((byte) a2);
+                        newBuf.put((byte) b2);
+                        newBuf.put((byte) g2);
+                        newBuf.put((byte) r2);
+                    } else if (fmt == Format.BGRA8) {
+                        newBuf.put((byte) b2);
+                        newBuf.put((byte) g2);
+                        newBuf.put((byte) r2);
+                        newBuf.put((byte) a2);
+                    } else if (fmt == Format.RGBA8) {
+                        newBuf.put((byte) r2);
+                        newBuf.put((byte) g2);
+                        newBuf.put((byte) b2);
+                        newBuf.put((byte) a2);
+                    } else if (fmt == Format.BGR8) {
+                        newBuf.put((byte) b2);
+                        newBuf.put((byte) g2);
+                        newBuf.put((byte) r2);
+                    } else {
+                        // RGB8 or other
+                        newBuf.put((byte) r2);
+                        newBuf.put((byte) g2);
+                        newBuf.put((byte) b2);
                     }
                 }
             }
             newBuf.flip();
 
-            Format fmt = hasAlpha ? Format.RGBA8 : Format.RGB8;
             com.jme3.texture.Image newImg = new com.jme3.texture.Image(fmt, newW, newH, newBuf);
-            Texture2D newTex = new Texture2D(newImg);
-            return newTex;
+            return new Texture2D(newImg);
         } catch (Exception e) {
             logger.warn("Failed to downscale texture, using original", e);
             return texture;

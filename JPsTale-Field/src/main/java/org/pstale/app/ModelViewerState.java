@@ -221,6 +221,7 @@ public class ModelViewerState extends SubAppState {
             public void run() {
                 try {
                     final Node model;
+                    log.info("Loading model: path={} isCharacter={}", entry.loadPath, entry.isCharacter);
                     if (entry.isCharacter) {
                         model = AssetFactory.loadCharacter(entry.loadPath);
                     } else {
@@ -228,9 +229,11 @@ public class ModelViewerState extends SubAppState {
                     }
 
                     if (model == null) {
-                        log.error("Failed to load model: {}", entry.loadPath);
+                        log.error("Failed to load model (null): {}", entry.loadPath);
                         return;
                     }
+
+                    log.info("Model loaded: children={} worldBound={}", model.getQuantity(), model.getWorldBound());
 
                     model.scale(MODEL_SCALE);
 
