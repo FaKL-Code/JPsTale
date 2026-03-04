@@ -55,6 +55,7 @@ import com.simsilica.lemur.style.ElementId;
  */
 public class HudState extends BaseAppState {
 
+    private Container fieldListWindow;
     private ListBox<String> listBox;
     private VersionedList<String> fieldList = new VersionedList<String>();
 
@@ -64,6 +65,39 @@ public class HudState extends BaseAppState {
     private VersionedReference<Boolean> showEffectsRef;
     private VersionedReference<Boolean> showAlphaRef;
     private VersionedReference<Double> speedRef;
+
+    /** All GUI panels that should block camera scroll when hovered. */
+    private final java.util.List<Container> trackedPanels = new java.util.ArrayList<>();
+
+    /**
+     * Returns true if the mouse cursor is currently inside the bounds of any
+     * registered GUI panel.  Uses a direct AABB hit-test against each panel's
+     * world position and resolved Lemur size — no event listeners involved.
+     */
+    public boolean isMouseOverPanel() {
+        Application app = getApplication();
+        if (app == null) return false;
+        com.jme3.math.Vector2f cursor = app.getInputManager().getCursorPosition();
+        for (Container panel : trackedPanels) {
+            if (panel.getParent() == null) continue; // not currently in scene
+            com.jme3.math.Vector3f pos  = panel.getWorldTranslation();
+            com.jme3.math.Vector3f size = panel.getSize();
+            if (size == null || size.x <= 0 || size.y <= 0) continue;
+            // Lemur GUI: origin = top-left corner, Y axis goes upward
+            //   x: [pos.x  ..  pos.x + size.x]
+            //   y: [pos.y - size.y  ..  pos.y]
+            if (cursor.x >= pos.x && cursor.x <= pos.x + size.x
+                    && cursor.y >= pos.y - size.y && cursor.y <= pos.y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Registers {@code panel} for hover detection used by scroll blocking. */
+    private void trackHover(Container panel) {
+        trackedPanels.add(panel);
+    }
 
     /** Tracks whether alpha highlight is currently active */
     private boolean alphaHighlightActive = false;
@@ -192,7 +226,16 @@ public class HudState extends BaseAppState {
             }
         }
 
-        // Search filter for model viewer — removed (button-driven now)
+        // One-time: place model viewer below region list after Lemur lays it out
+        if (!modelViewerPositioned && fieldListWindow != null && modelViewerWindow != null) {
+            com.jme3.math.Vector3f sz = fieldListWindow.getSize();
+            if (sz != null && sz.y > 1f) {
+                float x = fieldListWindow.getLocalTranslation().x;
+                float y = fieldListWindow.getLocalTranslation().y - sz.y - 8;
+                modelViewerWindow.setLocalTranslation(x, y, 0);
+                modelViewerPositioned = true;
+            }
+        }
 
         // Timeline: sync slider ↔ game time
         LightState ls = getStateManager().getState(LightState.class);
@@ -229,6 +272,7 @@ public class HudState extends BaseAppState {
 
         // 使其可以拖拽
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
 
         // 标题
         // 地图的Title
@@ -278,7 +322,8 @@ public class HudState extends BaseAppState {
         /**
          * 地区列表窗口
          */
-        Container window = new Container("glass");
+        fieldListWindow = new Container("glass");
+        Container window = fieldListWindow;
         // 标题
         window.addChild(new Label("Lista de Regioes", new ElementId("title"), "glass"));
         // 初始化列表数据
@@ -354,9 +399,13 @@ public class HudState extends BaseAppState {
 
         // 使其可以拖拽
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
 
         guiNode.attachChild(window);
     }
+
+    /** True once the model viewer has been placed below the region list. */
+    private boolean modelViewerPositioned = false;
 
     /**
      * Create a top panel for some stats toggles.
@@ -368,6 +417,7 @@ public class HudState extends BaseAppState {
 
         // 使其可以拖拽
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
 
         window.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0f, 0f, 0.5f), 5, 5, 0.02f, false));
         window.addChild(new Label("Opcoes", new ElementId("header"), "glass"));
@@ -491,6 +541,7 @@ public class HudState extends BaseAppState {
         window.setLocalTranslation(5, height - 200, 0);
         // 使其可以拖拽
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
         guiNode.attachChild(window);
     }
 
@@ -564,6 +615,7 @@ public class HudState extends BaseAppState {
 
         window.setLocalTranslation(5, 200, 0);
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
         guiNode.attachChild(window);
     }
 
@@ -637,6 +689,7 @@ public class HudState extends BaseAppState {
 
         window.setLocalTranslation(5, 500, 0);
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        trackHover(window);
         guiNode.attachChild(window);
 
         // Load existing bookmarks
@@ -672,6 +725,7 @@ public class HudState extends BaseAppState {
         // Centered at the top of the screen
         pickerWindow.setLocalTranslation(width / 2 - 175, height - 10, 0);
         CursorEventControl.addListenersToSpatial(pickerWindow, new DragHandler());
+        trackHover(pickerWindow);
         guiNode.attachChild(pickerWindow);
     }
 
@@ -736,6 +790,7 @@ public class HudState extends BaseAppState {
         helpWindow.setPreferredSize(hudSize);
 
         helpWindow.setLocalTranslation(width / 2 - 150, height / 2 + 150, 1);
+        trackHover(helpWindow);
         // Starts hidden
         helpVisible = false;
     }
@@ -862,8 +917,12 @@ public class HudState extends BaseAppState {
         // List starts empty; user clicks a category button to populate.
 
         // Position — let Lemur compute preferred size naturally
-        modelViewerWindow.setLocalTranslation(width - 260, height - 20, 0);
+        // Temporary position — will be snapped below fieldListWindow in update()
+        modelViewerWindow.setLocalTranslation(
+                fieldListWindow.getLocalTranslation().x,
+                height - 20, 0);
         CursorEventControl.addListenersToSpatial(modelViewerWindow, new DragHandler());
+        trackHover(modelViewerWindow);
         guiNode.attachChild(modelViewerWindow);
     }
 

@@ -11,10 +11,12 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 
-public class FieldApp extends SimpleApplication implements ActionListener {
+public class FieldApp extends SimpleApplication implements ActionListener, AnalogListener {
 
     private boolean moveUp = false;
     private boolean moveDown = false;
@@ -72,6 +74,14 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         flyCam.setMoveSpeed(1000);
         flyCam.setZoomSpeed(-50);
         flyCam.setDragToRotate(true);
+
+        // Register our own scroll mappings — FlyCam's zoom triggers will be
+        // removed on the first simpleUpdate(), after FlyCamAppState has finished
+        // initializing (it runs AFTER simpleInitApp in jME 3.1).
+        inputManager.addMapping("ScrollZoomIn",  new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+        inputManager.addMapping("ScrollZoomOut", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
+        inputManager.addListener(this, "ScrollZoomIn", "ScrollZoomOut");
+
         inputManager.addMapping("FLYCAM_RotateDrag", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
         // Remove default FlyCam vertical mappings (they move along camera direction,
@@ -116,11 +126,50 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         }
     }
 
+    private boolean scrollFixApplied = false;
+
     private static final float MIN_FOV = 10f;
     private static final float MAX_FOV = 90f;
+    /** Degrees of FOV change per unit of scroll analog value. */
+    private static final float FOV_ZOOM_SPEED = 15f;
+
+    @Override
+    public void onAnalog(String name, float value, float tpf) {
+        // Block camera zoom when cursor is hovering over any GUI panel
+        HudState hud = stateManager.getState(HudState.class);
+        if (hud != null && hud.isMouseOverPanel()) return;
+
+        float near   = cam.getFrustumNear();
+        float far    = cam.getFrustumFar();
+        float top    = cam.getFrustumTop();
+        float aspect = (float) cam.getWidth() / cam.getHeight();
+        double fov   = Math.toDegrees(2.0 * Math.atan(top / near));
+
+        if ("ScrollZoomIn".equals(name)) {
+            fov -= value * FOV_ZOOM_SPEED;   // reduce FOV → zoom in
+        } else {
+            fov += value * FOV_ZOOM_SPEED;   // increase FOV → zoom out
+        }
+        fov = Math.max(MIN_FOV, Math.min(MAX_FOV, fov));
+
+        float newTop = near * (float) Math.tan(Math.toRadians(fov / 2.0));
+        cam.setFrustum(near, far, -newTop * aspect, newTop * aspect, newTop, -newTop);
+    }
 
     @Override
     public void simpleUpdate(float tpf) {
+        // Remove FlyCam’s wheel zoom triggers on the first update — this is the
+        // earliest moment FlyCamAppState is fully initialized in jME 3.1.
+        if (!scrollFixApplied) {
+            if (inputManager.hasMapping("FLYCAM_ZoomIn")) {
+                inputManager.deleteTrigger("FLYCAM_ZoomIn",  new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+            }
+            if (inputManager.hasMapping("FLYCAM_ZoomOut")) {
+                inputManager.deleteTrigger("FLYCAM_ZoomOut", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
+            }
+            scrollFixApplied = true;
+        }
+
         float speed = flyCam.getMoveSpeed();
         if (moveUp) {
             cam.setLocation(cam.getLocation().add(0, speed * tpf, 0));
