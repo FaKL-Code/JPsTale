@@ -259,8 +259,10 @@ public class AssetFactory {
     public static Node loadStage3D(final String name, final String folderOverride) {
         String smd = AssetNameUtils.changeExt(name, "smd");
         SmdKey key = new SmdKey(smd, SMDTYPE.STAGE3D);
-        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         Stage stage = (Stage) assetManager.loadAsset(key);
+        // Apply folder override AFTER loadAsset: SmdLoader resets folder to
+        // key.getFolder() internally.
+        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         return SceneBuilder.buildScene3D(stage, smd);
     }
 
@@ -271,8 +273,10 @@ public class AssetFactory {
     public static Mesh loadStage3DMesh(final String name, final String folderOverride) {
         String smd = AssetNameUtils.changeExt(name, "smd");
         SmdKey key = new SmdKey(smd, SMDTYPE.STAGE3D);
-        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         Stage stage = (Stage) assetManager.loadAsset(key);
+        // Apply folder override AFTER loadAsset: SmdLoader resets folder to
+        // key.getFolder() internally.
+        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         return SceneBuilder.buildCollisionMesh(stage);
     }
 
