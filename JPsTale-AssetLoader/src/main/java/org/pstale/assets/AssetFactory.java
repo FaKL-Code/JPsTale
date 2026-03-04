@@ -19,6 +19,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.plugins.WAVLoader;
+import com.jme3.material.MatParam;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.BlendMode;
@@ -49,6 +50,7 @@ import com.jme3.script.plugins.field.SpmLoader;
 import com.jme3.script.plugins.field.SppLoader;
 import com.jme3.script.plugins.item.ItemLoader;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.Texture.WrapMode;
 
 /**
@@ -95,7 +97,7 @@ public class AssetFactory {
         registerFolder("D:/Priston Tale/0_素材/Server/精灵中国全服务端3060/3060");
         registerFolder("D:/Priston Tale/PTCN3550/PTCN3550");
     }
-    
+
     private static void registerFolder(String folder) {
         if (new File(folder).exists()) {
             assetManager.registerLocator(folder, FileLocator.class);
@@ -144,7 +146,7 @@ public class AssetFactory {
         }
         return true;
     }
-    
+
     /**
      * 获得一个刷怪点标记
      * 
@@ -223,7 +225,7 @@ public class AssetFactory {
         PAT3D skeleton = (PAT3D) assetManager.loadAsset(new SmdKey(smb, SMDTYPE.PAT3D));
         return skeleton;
     }
-    
+
     public static PAT3D loadSmd(final String name) {
         String smb = AssetNameUtils.changeExt(name, "smd");
         PAT3D model = (PAT3D) assetManager.loadAsset(new SmdKey(smb, SMDTYPE.PAT3D));
@@ -260,15 +262,14 @@ public class AssetFactory {
             PAT3D skeleton = loadSmb(name);
             model.setSkeleton(skeleton);
         }
-        
+
         AssetFactory.setFolder(AssetNameUtils.getFolder(name));
         return ModelBuilder.buildModel(model, AssetNameUtils.getSimpleName(name));
     }
 
-
     public static Node loadCharacter(String path) {
         AnimateModel modelInfo = loadInx(path);
-        
+
         String folder = AssetNameUtils.getFolder(path);
 
         // 有共享数据?
@@ -286,16 +287,16 @@ public class AssetFactory {
             String name = AssetNameUtils.getName(smbFile);
             skeleton = AssetFactory.loadSmb(folder + name);
         }
-        
+
         // 读取网格
         String smdFile = AssetNameUtils.changeExt(modelInfo.modelFile, "smd");
         smdFile = AssetNameUtils.getName(smdFile);
         PAT3D model = AssetFactory.loadSmd(folder + smdFile);
         model.setSkeleton(skeleton);
-        
+
         return ModelBuilder.buildModel(model, path);
     }
-    
+
     @SuppressWarnings("unchecked")
     public static ArrayList<StartPoint> loadSpp(final String name) {
         String path = String.format("GameServer/Field/%s.ase.spp", AssetNameUtils.getSimpleName(name));
@@ -448,6 +449,7 @@ public class AssetFactory {
 
         return mat;
     }
+
     /**
      * 创建一个匀速切换帧的材质。
      * 
@@ -527,7 +529,7 @@ public class AssetFactory {
 
         return mat;
     }
-    
+
     /**
      * 设置材质的RenderState
      * 
@@ -538,27 +540,27 @@ public class AssetFactory {
         RenderState rs = mat.getAdditionalRenderState();
 
         switch (m.BlendType) {
-        case 0:// SMMAT_BLEND_NONE
-            rs.setBlendMode(BlendMode.Off);
-            break;
-        case 1:// SMMAT_BLEND_ALPHA
-            rs.setBlendMode(BlendMode.Alpha);
-            break;
-        case 2:// SMMAT_BLEND_COLOR
-            rs.setBlendMode(BlendMode.Color);
-            break;
-        case 3:// SMMAT_BLEND_SHADOW
-            break;
-        case 4:// SMMAT_BLEND_LAMP
-            rs.setBlendMode(BlendMode.Additive);
-            break;
-        case 5:// SMMAT_BLEND_ADDCOLOR
-            rs.setBlendMode(BlendMode.Additive);
-            break;
-        case 6:
-            break;
-        default:
-            logger.info("Unknown BlendType=" + m.BlendType);
+            case 0:// SMMAT_BLEND_NONE
+                rs.setBlendMode(BlendMode.Off);
+                break;
+            case 1:// SMMAT_BLEND_ALPHA
+                rs.setBlendMode(BlendMode.Alpha);
+                break;
+            case 2:// SMMAT_BLEND_COLOR
+                rs.setBlendMode(BlendMode.Color);
+                break;
+            case 3:// SMMAT_BLEND_SHADOW
+                break;
+            case 4:// SMMAT_BLEND_LAMP
+                rs.setBlendMode(BlendMode.Additive);
+                break;
+            case 5:// SMMAT_BLEND_ADDCOLOR
+                rs.setBlendMode(BlendMode.Additive);
+                break;
+            case 6:
+                break;
+            default:
+                logger.info("Unknown BlendType=" + m.BlendType);
         }
 
         if (m.TwoSide == 1) {
@@ -570,19 +572,52 @@ public class AssetFactory {
             rs.setFaceCullMode(FaceCullMode.Off);
         }
 
-        // 透明物体
-        if (m.MapOpacity != 0 || m.Transparency != 0) {
-            // 这个值设置得稍微大一些，这样草、花等图片的边缘就会因为透明度不够而过滤掉像素。
-            mat.setFloat("AlphaDiscardThreshold", 0.75f);
-            // 虽然已经过时，但是还是写上以防不测。
-            // rs.setAlphaTest(true);
-            // rs.setAlphaFallOff(0.6f);
+        // --- Cutout materials (MapOpacity flag) ---
+        // Fences, railings, foliage, etc. with per-pixel alpha in the texture.
+        // Use alpha-test discard in the Opaque bucket so depth writes are
+        // correct and no back-to-front sorting is needed.
+        // Threshold 0.5 = industry standard: >50% opaque passes, rest discarded.
+        // Also disable mipmap filtering on the diffuse texture so the alpha
+        // channel stays crisp at any distance (mipmaps average alpha and cause
+        // far-away transparent gaps to pass the threshold and block objects behind).
+        if (m.MapOpacity != 0) {
+            mat.setFloat("AlphaDiscardThreshold", 0.5f);
+            rs.setBlendMode(BlendMode.Off);
             rs.setDepthWrite(true);
             rs.setDepthTest(true);
             rs.setColorWrite(true);
-
-            // 透明物体不裁剪面
             rs.setFaceCullMode(FaceCullMode.Off);
+
+            // Disable mipmap filtering so alpha stays sharp at distance
+            disableMipmapsForCutout(mat);
+        }
+        // --- Semi-transparent materials (global Transparency value) ---
+        // Glass, faded surfaces, etc. Need real alpha blending and must
+        // NOT write to the depth buffer so geometry behind stays visible.
+        else if (m.Transparency != 0) {
+            rs.setBlendMode(BlendMode.Alpha);
+            rs.setDepthWrite(false);
+            rs.setDepthTest(true);
+            rs.setFaceCullMode(FaceCullMode.Off);
+        }
+    }
+
+    /**
+     * Disable mipmap filtering on the diffuse/color texture of a material.
+     * For cutout materials, mipmaps average the alpha channel at distance,
+     * causing transparent areas to appear semi-opaque and block objects behind.
+     * Using BilinearNoMipMaps keeps the alpha channel crisp at any distance.
+     */
+    private static void disableMipmapsForCutout(Material mat) {
+        // Try DiffuseMap (Lighting.j3md) then ColorMap (Unshaded.j3md)
+        String[] texParams = { "DiffuseMap", "ColorMap" };
+        for (String paramName : texParams) {
+            MatParam param = mat.getParam(paramName);
+            if (param != null && param.getValue() instanceof Texture) {
+                Texture tex = (Texture) param.getValue();
+                tex.setMinFilter(MinFilter.BilinearNoMipMaps);
+                break;
+            }
         }
     }
 }

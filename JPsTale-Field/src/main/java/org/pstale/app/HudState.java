@@ -1,18 +1,28 @@
 package org.pstale.app;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.pstale.app.ModelViewerState.Category;
+import org.pstale.app.ModelViewerState.ModelEntry;
 import org.pstale.entity.field.Field;
 import org.pstale.utils.GameDate;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitor;
+import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.ActionButton;
@@ -52,7 +62,13 @@ public class HudState extends BaseAppState {
     private VersionedReference<Boolean> showMeshRef;
     private VersionedReference<Boolean> collisionRef;
     private VersionedReference<Boolean> showEffectsRef;
+    private VersionedReference<Boolean> showAlphaRef;
     private VersionedReference<Double> speedRef;
+
+    /** Tracks whether alpha highlight is currently active */
+    private boolean alphaHighlightActive = false;
+    /** Stores original materials so we can restore them */
+    private Map<Geometry, Material> originalMaterials = new HashMap<>();
 
     private VersionedList<String> npcList = new VersionedList<String>();
     private VersionedList<String> spawnPointList = new VersionedList<String>();
@@ -115,6 +131,11 @@ public class HudState extends BaseAppState {
          */
         createHelpPanel();
 
+        /**
+         * Painel do visualizador de modelos
+         */
+        createModelViewerPanel();
+
         if (LoadingAppState.CHECK_SERVER) {
             createCreaturePanel();
         }
@@ -160,6 +181,9 @@ public class HudState extends BaseAppState {
                 ambient.setEnabled(showEffectsRef.get());
             }
         }
+        if (showAlphaRef.update()) {
+            toggleAlphaHighlight(showAlphaRef.get());
+        }
         if (speedRef.update()) {
             double value = speedRef.get();
             SimpleApplication app = (SimpleApplication) getApplication();
@@ -182,6 +206,14 @@ public class HudState extends BaseAppState {
                 timeSlider.getModel().setValue(current);
             }
             timeLabel.setText(String.format("%02d:%02d", gd.getHour(), gd.getMinute()));
+        }
+
+        // Model Viewer: auto-rotate toggle
+        if (modelRotateRef != null && modelRotateRef.update()) {
+            ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+            if (viewer != null) {
+                viewer.setAutoRotate(modelRotateRef.get());
+            }
         }
     }
 
@@ -363,6 +395,10 @@ public class HudState extends BaseAppState {
         temp = window.addChild(new Checkbox("Mostrar Efeitos"));
         temp.setChecked(false);
         showEffectsRef = temp.getModel().createReference();
+
+        temp = window.addChild(new Checkbox("Mostrar Alpha Channels"));
+        temp.setChecked(false);
+        showAlphaRef = temp.getModel().createReference();
 
         window.addChild(new Label("Vel. Camera:"));
         DefaultRangedValueModel model = new DefaultRangedValueModel(0, 1000, 1000);
@@ -712,6 +748,173 @@ public class HudState extends BaseAppState {
             guiNode.attachChild(helpWindow);
         } else {
             helpWindow.removeFromParent();
+        }
+    }
+
+    // ========================================================================
+    // Model Viewer Panel
+    // ========================================================================
+
+    private ListBox<String> modelListBox;
+    private VersionedList<String> modelEntryList = new VersionedList<String>();
+    private List<ModelEntry> currentModelEntries = new ArrayList<ModelEntry>();
+    private Container modelViewerWindow;
+
+    private void createModelViewerPanel() {
+        modelViewerWindow = new Container("glass");
+        modelViewerWindow.addChild(new Label("Visualizador de Modelos", new ElementId("title"), "glass"));
+
+        // Category buttons — split across two rows to avoid layout overflow
+        Container catRow1 = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        modelViewerWindow.addChild(catRow1);
+        Container catRow2 = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        modelViewerWindow.addChild(catRow2);
+
+        final Category[] categories = Category.values();
+        for (int i = 0; i < categories.length; i++) {
+            final Category cat = categories[i];
+            ActionButton btn = new ActionButton(new Action(cat.label) {
+                @Override
+                public void execute(Button b) {
+                    populateModelList(cat);
+                }
+            }, "glass");
+            if (i < 3) {
+                catRow1.addChild(btn);
+            } else {
+                catRow2.addChild(btn);
+            }
+        }
+
+        // Model list
+        modelListBox = new ListBox<String>(modelEntryList, "glass");
+        modelListBox.setVisibleItems(12);
+        modelViewerWindow.addChild(modelListBox);
+
+        // Action button row
+        Container buttons = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        modelViewerWindow.addChild(buttons);
+
+        buttons.addChild(new ActionButton(new Action("Carregar") {
+            @Override
+            public void execute(Button b) {
+                Integer sel = modelListBox.getSelectionModel().getSelection();
+                if (sel != null && sel < currentModelEntries.size()) {
+                    final ModelEntry entry = currentModelEntries.get(sel);
+                    getApplication().enqueue(new Callable<Void>() {
+                        public Void call() {
+                            ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+                            if (viewer != null) {
+                                viewer.loadModel(entry);
+                            }
+                            return null;
+                        }
+                    });
+                }
+            }
+        }, "glass"));
+
+        buttons.addChild(new ActionButton(new Action("Voltar ao Mapa") {
+            @Override
+            public void execute(Button b) {
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+                        if (viewer != null) {
+                            viewer.exitViewer();
+                        }
+                        return null;
+                    }
+                });
+            }
+        }, "glass"));
+
+        // Auto-rotate checkbox
+        final Checkbox rotateCheck = modelViewerWindow.addChild(new Checkbox("Rotacao Automatica"));
+        rotateCheck.setChecked(false);
+        modelRotateRef = rotateCheck.getModel().createReference();
+
+        // Do NOT populate at init — ModelViewerState is not yet attached.
+        // List starts empty; user clicks a category button to populate.
+
+        // Position — let Lemur compute preferred size naturally
+        modelViewerWindow.setLocalTranslation(width - 260, height - 20, 0);
+        CursorEventControl.addListenersToSpatial(modelViewerWindow, new DragHandler());
+        guiNode.attachChild(modelViewerWindow);
+    }
+
+    private VersionedReference<Boolean> modelRotateRef;
+
+    private void populateModelList(Category category) {
+        modelEntryList.clear();
+        currentModelEntries.clear();
+
+        ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+        if (viewer == null) return;
+
+        List<ModelEntry> entries = viewer.scanCategory(category);
+        currentModelEntries.addAll(entries);
+        for (ModelEntry e : entries) {
+            modelEntryList.add(e.displayName);
+        }
+    }
+
+    /**
+     * Toggle alpha channel highlight.
+     * When enabled, geometries with MapOpacity or Transparency are tinted
+     * with a distinct color so the user can easily identify them.
+     * MapOpacity (cutout) = magenta, Transparency (semi-transparent) = cyan.
+     * When disabled, original materials are restored.
+     */
+    private void toggleAlphaHighlight(boolean enabled) {
+        LoaderAppState loader = getStateManager().getState(LoaderAppState.class);
+        if (loader == null || loader.rootNode == null)
+            return;
+
+        if (enabled) {
+            alphaHighlightActive = true;
+            originalMaterials.clear();
+            final SimpleApplication app = (SimpleApplication) getApplication();
+
+            loader.rootNode.depthFirstTraversal(new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial spatial) {
+                    if (!(spatial instanceof Geometry))
+                        return;
+                    Geometry geom = (Geometry) spatial;
+                    Integer mapOpacity = geom.getUserData("MapOpacity");
+                    Float transparency = geom.getUserData("Transparency");
+
+                    boolean hasCutout = (mapOpacity != null && mapOpacity != 0);
+                    boolean hasTransparency = (transparency != null && transparency != 0);
+
+                    if (hasCutout || hasTransparency) {
+                        // Save original material
+                        originalMaterials.put(geom, geom.getMaterial());
+
+                        // Create highlight material
+                        Material hlMat = new Material(app.getAssetManager(),
+                                "Common/MatDefs/Misc/Unshaded.j3md");
+                        if (hasCutout) {
+                            hlMat.setColor("Color", new ColorRGBA(1f, 0f, 1f, 0.6f)); // magenta
+                        } else {
+                            hlMat.setColor("Color", new ColorRGBA(0f, 1f, 1f, 0.6f)); // cyan
+                        }
+                        RenderState rs = hlMat.getAdditionalRenderState();
+                        rs.setWireframe(true);
+                        rs.setFaceCullMode(RenderState.FaceCullMode.Off);
+
+                        geom.setMaterial(hlMat);
+                    }
+                }
+            });
+        } else {
+            // Restore original materials
+            for (Map.Entry<Geometry, Material> entry : originalMaterials.entrySet()) {
+                entry.getKey().setMaterial(entry.getValue());
+            }
+            originalMaterials.clear();
+            alphaHighlightActive = false;
         }
     }
 }

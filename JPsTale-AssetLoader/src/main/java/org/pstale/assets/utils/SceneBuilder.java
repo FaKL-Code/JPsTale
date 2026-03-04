@@ -159,10 +159,15 @@ public class SceneBuilder {
             geom.setUserData("Transparency", m.Transparency);
             rootNode.attachChild(geom);
 
-            // 透明度
-            // 只有不透明物体才需要检测碰撞网格。
-            if (m.MapOpacity != 0 || m.Transparency != 0 || m.BlendType == 1 || m.BlendType == 4) {
-                geom.setQueueBucket(Bucket.Translucent);
+            // Render queue bucket assignment:
+            // - MapOpacity (cutout): stays in Opaque — alpha discard handles it
+            // - Transparency (semi-transparent): needs Transparent bucket for
+            // proper back-to-front sorting with depth write OFF
+            // - BlendType 1/4/5 without opacity flags: also Transparent bucket
+            if (m.MapOpacity == 0
+                    && (m.Transparency != 0 || m.BlendType == 1
+                            || m.BlendType == 4 || m.BlendType == 5)) {
+                geom.setQueueBucket(Bucket.Transparent);
             }
 
             if (m.UseState != 0) {// ScriptState

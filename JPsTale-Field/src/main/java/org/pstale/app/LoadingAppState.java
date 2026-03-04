@@ -121,7 +121,8 @@ public class LoadingAppState extends SubAppState {
                 new HudState(), new LoaderAppState(), new CollisionState(), new MusicAppState(), new AmbientAppState(),
                 new FieldgateAppState(), new MonsterAppState(),
                 new LightState(), new PickingAppState(), new SkyboxAppState(),
-                new CameraBookmarkAppState(), new TexturePickerAppState() };
+                new CameraBookmarkAppState(), new TexturePickerAppState(),
+                new ModelViewerState() };
 
         AppStateManager stateManager = getStateManager();
         stateManager.attachAll(states);// 添加所需的AppStates
