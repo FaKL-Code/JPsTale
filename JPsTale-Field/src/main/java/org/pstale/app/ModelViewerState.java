@@ -15,6 +15,10 @@ import org.slf4j.LoggerFactory;
 import com.jme3.animation.AnimControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
+import com.jme3.input.InputManager;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -84,16 +88,44 @@ public class ModelViewerState extends SubAppState {
     private Vector3f savedCamLocation;
     private Vector3f savedCamDirection;
 
+    /** Whether the animation is currently playing */
+    private boolean animationPlaying = false;
+
     /** Client root resolved from settings */
     private String clientRoot;
+
+    /** Input listener for model viewer shortcuts */
+    private ActionListener inputListener;
+
+    private static final String MAPPING_TOGGLE_ROTATE = "ModelViewer_ToggleRotate";
 
     @Override
     public void initialize(Application app) {
         clientRoot = app.getContext().getSettings().getString("ClientRoot");
+
+        // Register R key for rotation toggle
+        final InputManager im = app.getInputManager();
+        im.addMapping(MAPPING_TOGGLE_ROTATE, new KeyTrigger(KeyInput.KEY_R));
+        inputListener = new ActionListener() {
+            @Override
+            public void onAction(String name, boolean isPressed, float tpf) {
+                if (isPressed && MAPPING_TOGGLE_ROTATE.equals(name)) {
+                    if (viewerActive) {
+                        toggleAutoRotate();
+                    }
+                }
+            }
+        };
+        im.addListener(inputListener, MAPPING_TOGGLE_ROTATE);
     }
 
     @Override
     protected void cleanup(Application app) {
+        InputManager im = app.getInputManager();
+        im.removeListener(inputListener);
+        if (im.hasMapping(MAPPING_TOGGLE_ROTATE)) {
+            im.deleteMapping(MAPPING_TOGGLE_ROTATE);
+        }
         unloadCurrentModel();
     }
 
@@ -182,12 +214,13 @@ public class ModelViewerState extends SubAppState {
 
         viewerActive = true;
 
-        // Load on background thread to avoid freezing
-        app.enqueue(new Callable<Void>() {
+        // Load on a background thread so the UI stays responsive,
+        // then enqueue scene-graph attachment to the render thread.
+        Thread loadThread = new Thread(new Runnable() {
             @Override
-            public Void call() {
+            public void run() {
                 try {
-                    Node model;
+                    final Node model;
                     if (entry.isCharacter) {
                         model = AssetFactory.loadCharacter(entry.loadPath);
                     } else {
@@ -196,36 +229,42 @@ public class ModelViewerState extends SubAppState {
 
                     if (model == null) {
                         log.error("Failed to load model: {}", entry.loadPath);
-                        return null;
+                        return;
                     }
 
                     model.scale(MODEL_SCALE);
 
-                    // Disable animation so the model stays in its bind pose
-                    // (static for easier texture analysis and editing)
+                    // Start with animation disabled (static for texture analysis)
                     AnimControl ac = model.getControl(AnimControl.class);
                     if (ac != null) {
                         ac.setEnabled(false);
                     }
+                    animationPlaying = false;
 
-                    // Add auto-rotation (off by default)
+                    // Add auto-rotation (off by default, toggle with R)
                     rotateControl = new AutoRotateControl();
                     rotateControl.setEnabled(autoRotate);
                     model.addControl(rotateControl);
 
-                    currentModel = model;
-                    rootNode.attachChild(model);
-
-                    // Position camera to frame the model
-                    positionCameraForModel(model);
+                    // Attach to scene on the render thread
+                    app.enqueue(new Callable<Void>() {
+                        @Override
+                        public Void call() {
+                            currentModel = model;
+                            rootNode.attachChild(model);
+                            positionCameraForModel(model);
+                            return null;
+                        }
+                    });
 
                     log.info("Loaded model: {}", entry.displayName);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     log.error("Error loading model: {}", entry.loadPath, e);
                 }
-                return null;
             }
-        });
+        }, "ModelLoader");
+        loadThread.setDaemon(true);
+        loadThread.start();
     }
 
     /**
@@ -277,6 +316,10 @@ public class ModelViewerState extends SubAppState {
     /**
      * Toggle auto-rotation of the displayed model.
      */
+    public void toggleAutoRotate() {
+        setAutoRotate(!autoRotate);
+    }
+
     public void setAutoRotate(boolean rotate) {
         autoRotate = rotate;
         if (rotateControl != null) {
@@ -286,6 +329,38 @@ public class ModelViewerState extends SubAppState {
 
     public boolean isAutoRotate() {
         return autoRotate;
+    }
+
+    /**
+     * Toggle animation playback on the current model.
+     * When enabled, plays the "Anim" clip; when disabled, freezes the model.
+     */
+    public void toggleAnimation() {
+        if (currentModel == null)
+            return;
+        AnimControl ac = currentModel.getControl(AnimControl.class);
+        if (ac == null)
+            return;
+
+        animationPlaying = !animationPlaying;
+        if (animationPlaying) {
+            ac.setEnabled(true);
+            if (ac.getNumChannels() == 0) {
+                try {
+                    ac.createChannel().setAnim("Anim");
+                } catch (Exception e) {
+                    log.debug("No 'Anim' animation found");
+                    animationPlaying = false;
+                    ac.setEnabled(false);
+                }
+            }
+        } else {
+            ac.setEnabled(false);
+        }
+    }
+
+    public boolean isAnimationPlaying() {
+        return animationPlaying;
     }
 
     public boolean isViewerActive() {

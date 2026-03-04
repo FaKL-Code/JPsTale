@@ -192,6 +192,8 @@ public class HudState extends BaseAppState {
             }
         }
 
+        // Search filter for model viewer — removed (button-driven now)
+
         // Timeline: sync slider ↔ game time
         LightState ls = getStateManager().getState(LightState.class);
         if (ls != null && timeSlider != null && timeLabel != null) {
@@ -208,13 +210,6 @@ public class HudState extends BaseAppState {
             timeLabel.setText(String.format("%02d:%02d", gd.getHour(), gd.getMinute()));
         }
 
-        // Model Viewer: auto-rotate toggle
-        if (modelRotateRef != null && modelRotateRef.update()) {
-            ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
-            if (viewer != null) {
-                viewer.setAutoRotate(modelRotateRef.get());
-            }
-        }
     }
 
     /**
@@ -714,6 +709,9 @@ public class HudState extends BaseAppState {
                 { "F1", "Mostrar / Esconder HUD" },
                 { "H", "Mostrar / Esconder esta ajuda" },
                 { "F12", "Capturar tela (screenshot)" },
+                { "", "" },
+                { "--- Visualizador de Modelos ---", "" },
+                { "R", "Ligar/desligar rotacao do modelo" },
         };
 
         for (String[] bind : binds) {
@@ -758,7 +756,9 @@ public class HudState extends BaseAppState {
     private ListBox<String> modelListBox;
     private VersionedList<String> modelEntryList = new VersionedList<String>();
     private List<ModelEntry> currentModelEntries = new ArrayList<ModelEntry>();
+    private List<ModelEntry> allModelEntries = new ArrayList<ModelEntry>();
     private Container modelViewerWindow;
+    private TextField searchField;
 
     private void createModelViewerPanel() {
         modelViewerWindow = new Container("glass");
@@ -785,6 +785,19 @@ public class HudState extends BaseAppState {
                 catRow2.addChild(btn);
             }
         }
+
+        // Search filter row (field + button)
+        Container searchRow = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        modelViewerWindow.addChild(searchRow);
+        searchField = new TextField("", "glass");
+        searchField.setPreferredWidth(170);
+        searchRow.addChild(searchField);
+        searchRow.addChild(new ActionButton(new Action("Buscar") {
+            @Override
+            public void execute(Button b) {
+                performGlobalSearch(searchField.getText());
+            }
+        }, "glass"));
 
         // Model list
         modelListBox = new ListBox<String>(modelEntryList, "glass");
@@ -829,10 +842,21 @@ public class HudState extends BaseAppState {
             }
         }, "glass"));
 
-        // Auto-rotate checkbox
-        final Checkbox rotateCheck = modelViewerWindow.addChild(new Checkbox("Rotacao Automatica"));
-        rotateCheck.setChecked(false);
-        modelRotateRef = rotateCheck.getModel().createReference();
+        // Animation play/pause button
+        buttons.addChild(new ActionButton(new Action("Animacao") {
+            @Override
+            public void execute(Button b) {
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+                        if (viewer != null) {
+                            viewer.toggleAnimation();
+                        }
+                        return null;
+                    }
+                });
+            }
+        }, "glass"));
 
         // Do NOT populate at init — ModelViewerState is not yet attached.
         // List starts empty; user clicks a category button to populate.
@@ -843,20 +867,56 @@ public class HudState extends BaseAppState {
         guiNode.attachChild(modelViewerWindow);
     }
 
-    private VersionedReference<Boolean> modelRotateRef;
-
     private void populateModelList(Category category) {
-        modelEntryList.clear();
-        currentModelEntries.clear();
+        allModelEntries.clear();
 
         ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
         if (viewer == null)
             return;
 
-        List<ModelEntry> entries = viewer.scanCategory(category);
-        currentModelEntries.addAll(entries);
-        for (ModelEntry e : entries) {
-            modelEntryList.add(e.displayName);
+        allModelEntries.addAll(viewer.scanCategory(category));
+        if (searchField != null) {
+            searchField.setText("");
+        }
+        applySearchFilter("");
+    }
+
+    private void performGlobalSearch(String query) {
+        allModelEntries.clear();
+        modelEntryList.clear();
+        currentModelEntries.clear();
+
+        if (query == null || query.trim().isEmpty())
+            return;
+
+        ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
+        if (viewer == null)
+            return;
+
+        String lowerQuery = query.trim().toLowerCase();
+        Category[] categories = Category.values();
+        for (int i = 0; i < categories.length; i++) {
+            List<ModelEntry> entries = viewer.scanCategory(categories[i]);
+            for (ModelEntry e : entries) {
+                if (e.displayName.toLowerCase().contains(lowerQuery)) {
+                    allModelEntries.add(e);
+                    currentModelEntries.add(e);
+                    modelEntryList.add(e.displayName);
+                }
+            }
+        }
+    }
+
+    private void applySearchFilter(String filter) {
+        modelEntryList.clear();
+        currentModelEntries.clear();
+
+        String lowerFilter = filter.toLowerCase();
+        for (ModelEntry e : allModelEntries) {
+            if (lowerFilter.isEmpty() || e.displayName.toLowerCase().contains(lowerFilter)) {
+                currentModelEntries.add(e);
+                modelEntryList.add(e.displayName);
+            }
         }
     }
 

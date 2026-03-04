@@ -2,7 +2,11 @@ package org.pstale.assets;
 
 import static org.pstale.constants.SceneConstants.scale;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import org.pstale.assets.utils.AssetNameUtils;
@@ -52,6 +56,9 @@ import com.jme3.script.plugins.item.ItemLoader;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.Texture.WrapMode;
+import com.jme3.texture.Texture2D;
+import com.jme3.texture.Image.Format;
+import com.jme3.util.BufferUtils;
 
 /**
  * 模型工厂
@@ -385,6 +392,9 @@ public class AssetFactory {
      * 
      * @param name
      */
+    /** Maximum texture dimension. Textures larger than this are downscaled. */
+    private static final int MAX_TEXTURE_SIZE = 2048;
+
     public static Texture createTexture(String name) {
         name = AssetNameUtils.getName(name);
         Texture texture = null;
@@ -392,6 +402,7 @@ public class AssetFactory {
             TextureKey texKey = new TextureKey(folder + name);
             texKey.setGenerateMips(true);
             texture = assetManager.loadTexture(texKey);
+            texture = clampTextureSize(texture);
             texture.setWrap(WrapMode.Repeat);
             texture.setAnisotropicFilter(4);
         } catch (Exception ex) {
@@ -399,6 +410,80 @@ public class AssetFactory {
             texture.setWrap(WrapMode.EdgeClamp);
         }
         return texture;
+    }
+
+    /**
+     * If a texture exceeds MAX_TEXTURE_SIZE in any dimension, downscale it
+     * using java.awt so it fits within the limit. This prevents
+     * OutOfMemoryError caused by oversized custom PNG textures.
+     */
+    private static Texture clampTextureSize(Texture texture) {
+        com.jme3.texture.Image img = texture.getImage();
+        int w = img.getWidth();
+        int h = img.getHeight();
+        if (w <= MAX_TEXTURE_SIZE && h <= MAX_TEXTURE_SIZE) {
+            return texture;
+        }
+
+        logger.info("Downscaling oversized texture {}x{} -> max {}", w, h, MAX_TEXTURE_SIZE);
+
+        // Compute new dimensions preserving aspect ratio
+        float scale = Math.min((float) MAX_TEXTURE_SIZE / w, (float) MAX_TEXTURE_SIZE / h);
+        int newW = Math.max(1, (int) (w * scale));
+        int newH = Math.max(1, (int) (h * scale));
+
+        try {
+            // Convert jME Image to BufferedImage
+            ByteBuffer buf = img.getData(0);
+            buf.rewind();
+            boolean hasAlpha = img.getFormat() == Format.RGBA8
+                    || img.getFormat() == Format.BGRA8
+                    || img.getFormat() == Format.ABGR8;
+            int srcType = hasAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR;
+            int channels = hasAlpha ? 4 : 3;
+            BufferedImage srcImg = new BufferedImage(w, h, srcType);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int r = buf.get() & 0xFF;
+                    int g = buf.get() & 0xFF;
+                    int b = buf.get() & 0xFF;
+                    int a = hasAlpha ? (buf.get() & 0xFF) : 255;
+                    srcImg.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+                }
+            }
+
+            // Resize
+            BufferedImage dstImg = new BufferedImage(newW, newH,
+                    hasAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+            Graphics2D g2d = dstImg.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(srcImg, 0, 0, newW, newH, null);
+            g2d.dispose();
+
+            // Convert back to jME Image
+            ByteBuffer newBuf = BufferUtils.createByteBuffer(newW * newH * channels);
+            for (int y = 0; y < newH; y++) {
+                for (int x = 0; x < newW; x++) {
+                    int argb = dstImg.getRGB(x, y);
+                    newBuf.put((byte) ((argb >> 16) & 0xFF)); // R
+                    newBuf.put((byte) ((argb >> 8) & 0xFF));  // G
+                    newBuf.put((byte) (argb & 0xFF));         // B
+                    if (hasAlpha) {
+                        newBuf.put((byte) ((argb >> 24) & 0xFF)); // A
+                    }
+                }
+            }
+            newBuf.flip();
+
+            Format fmt = hasAlpha ? Format.RGBA8 : Format.RGB8;
+            com.jme3.texture.Image newImg = new com.jme3.texture.Image(fmt, newW, newH, newBuf);
+            Texture2D newTex = new Texture2D(newImg);
+            return newTex;
+        } catch (Exception e) {
+            logger.warn("Failed to downscale texture, using original", e);
+            return texture;
+        }
     }
 
     /**

@@ -244,6 +244,21 @@ public class GeomObject extends Flyweight {
      */
     public void loadFile(LittleEndien in) throws IOException {
 
+        // Sanity check: reject corrupt files with unreasonable array sizes.
+        // A 1-million-element cap is generous for any Priston Tale asset.
+        final int MAX_ELEMENTS = 1000000;
+        if (nVertex < 0 || nVertex > MAX_ELEMENTS
+                || nFace < 0 || nFace > MAX_ELEMENTS
+                || nTexLink < 0 || nTexLink > MAX_ELEMENTS
+                || TmRotCnt < 0 || TmRotCnt > MAX_ELEMENTS
+                || TmPosCnt < 0 || TmPosCnt > MAX_ELEMENTS
+                || TmScaleCnt < 0 || TmScaleCnt > MAX_ELEMENTS) {
+            throw new IOException("Corrupt GeomObject header: nVertex=" + nVertex
+                    + " nFace=" + nFace + " nTexLink=" + nTexLink
+                    + " TmRotCnt=" + TmRotCnt + " TmPosCnt=" + TmPosCnt
+                    + " TmScaleCnt=" + TmScaleCnt);
+        }
+
         Vertex = new Vertex[nVertex];
         for (int i = 0; i < nVertex; i++) {
             Vertex[i] = new Vertex();
