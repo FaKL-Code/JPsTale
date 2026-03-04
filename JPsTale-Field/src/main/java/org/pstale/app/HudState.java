@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.pstale.entity.field.Field;
+import org.pstale.utils.GameDate;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -27,6 +28,7 @@ import com.simsilica.lemur.ListBox;
 import com.simsilica.lemur.Panel;
 import com.simsilica.lemur.Slider;
 import com.simsilica.lemur.TabbedPanel;
+import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.core.VersionedList;
@@ -86,6 +88,15 @@ public class HudState extends BaseAppState {
          */
         createMiniMap();
 
+        /**
+         * Painel de controle de tempo
+         */
+        createTimelinePanel();
+        /**
+         * Painel de bookmarks de camera
+         */
+        createBookmarkPanel();
+
         if (LoadingAppState.CHECK_SERVER) {
             createCreaturePanel();
         }
@@ -137,6 +148,22 @@ public class HudState extends BaseAppState {
             if (app.getFlyByCamera() != null) {
                 app.getFlyByCamera().setMoveSpeed((float) value);
             }
+        }
+
+        // Timeline: sync slider ↔ game time
+        LightState ls = getStateManager().getState(LightState.class);
+        if (ls != null && timeSlider != null && timeLabel != null) {
+            GameDate gd = ls.getGameDate();
+            if (timeSliderRef.update()) {
+                // User moved slider → set game time
+                float t = (float) timeSlider.getModel().getValue();
+                gd.setTimeOfDayNormalized(t);
+            } else {
+                // Game time progressing → update slider
+                double current = gd.getTimeOfDayNormalized();
+                timeSlider.getModel().setValue(current);
+            }
+            timeLabel.setText(String.format("%02d:%02d", gd.getHour(), gd.getMinute()));
         }
     }
 
@@ -435,6 +462,139 @@ public class HudState extends BaseAppState {
         spawnPointList.clear();
         if (spp != null) {
             spawnPointList.addAll(spp);
+        }
+    }
+
+    // ========================================================================
+    // Timeline Control
+    // ========================================================================
+
+    private Slider timeSlider;
+    private Label timeLabel;
+    private VersionedReference<Double> timeSliderRef;
+    private boolean timeSliderDragging = false;
+
+    private void createTimelinePanel() {
+        Container window = new Container("glass");
+        window.addChild(new Label("Horario", new ElementId("title"), "glass"));
+
+        // Time label
+        timeLabel = window.addChild(new Label("00:00"));
+
+        // Time slider (0..1 normalized)
+        DefaultRangedValueModel timeModel = new DefaultRangedValueModel(0, 1, 0.25);
+        timeSlider = window.addChild(new Slider(timeModel, "glass"));
+        timeSliderRef = timeSlider.getModel().createReference();
+
+        // Buttons row
+        Container buttons = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        window.addChild(buttons);
+
+        buttons.addChild(new ActionButton(new Action("Pausar/Continuar") {
+            @Override
+            public void execute(Button b) {
+                LightState ls = getStateManager().getState(LightState.class);
+                if (ls != null) {
+                    GameDate gd = ls.getGameDate();
+                    gd.setPaused(!gd.isPaused());
+                }
+            }
+        }, "glass"));
+
+        Vector3f hudSize = new Vector3f(200, 0, 0);
+        hudSize.maxLocal(window.getPreferredSize());
+        window.setPreferredSize(hudSize);
+
+        window.setLocalTranslation(5, 200, 0);
+        CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        guiNode.attachChild(window);
+    }
+
+    // ========================================================================
+    // Camera Bookmarks
+    // ========================================================================
+
+    private VersionedList<String> bookmarkList = new VersionedList<String>();
+    private ListBox<String> bookmarkListBox;
+
+    private void createBookmarkPanel() {
+        Container window = new Container("glass");
+        window.addChild(new Label("Bookmarks", new ElementId("title"), "glass"));
+
+        bookmarkListBox = new ListBox<String>(bookmarkList, "glass");
+        bookmarkListBox.setVisibleItems(6);
+        window.addChild(bookmarkListBox);
+
+        // Name input
+        final TextField nameField = window.addChild(new TextField("Bookmark"));
+
+        // Buttons row
+        Container buttons = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Even, FillMode.Even));
+        window.addChild(buttons);
+
+        buttons.addChild(new ActionButton(new Action("Salvar") {
+            @Override
+            public void execute(Button b) {
+                final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
+                if (bm != null) {
+                    String name = nameField.getText();
+                    bm.addBookmark(name);
+                    bm.saveBookmarks();
+                    refreshBookmarkList();
+                }
+            }
+        }, "glass"));
+
+        buttons.addChild(new ActionButton(new Action("Ir") {
+            @Override
+            public void execute(Button b) {
+                Integer sel = bookmarkListBox.getSelectionModel().getSelection();
+                if (sel != null) {
+                    final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
+                    if (bm != null) {
+                        bm.goToBookmark(sel);
+                    }
+                }
+            }
+        }, "glass"));
+
+        buttons.addChild(new ActionButton(new Action("Remover") {
+            @Override
+            public void execute(Button b) {
+                Integer sel = bookmarkListBox.getSelectionModel().getSelection();
+                if (sel != null) {
+                    final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
+                    if (bm != null) {
+                        bm.removeBookmark(sel);
+                        bm.saveBookmarks();
+                        refreshBookmarkList();
+                    }
+                }
+            }
+        }, "glass"));
+
+        // Size and position
+        Vector3f hudSize = new Vector3f(200, 0, 0);
+        hudSize.maxLocal(window.getPreferredSize());
+        window.setPreferredSize(hudSize);
+
+        window.setLocalTranslation(5, 500, 0);
+        CursorEventControl.addListenersToSpatial(window, new DragHandler());
+        guiNode.attachChild(window);
+
+        // Load existing bookmarks
+        final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
+        if (bm != null) {
+            bm.loadBookmarks();
+            refreshBookmarkList();
+        }
+    }
+
+    private void refreshBookmarkList() {
+        bookmarkList.clear();
+        final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
+        if (bm != null) {
+            bookmarkList.addAll(bm.getBookmarkNames());
         }
     }
 }

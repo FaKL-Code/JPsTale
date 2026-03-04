@@ -120,7 +120,8 @@ public class LoadingAppState extends SubAppState {
                 // new CursorState(),
                 new HudState(), new LoaderAppState(), new CollisionState(), new MusicAppState(), new AmbientAppState(),
                 new FieldgateAppState(), new WarpgateAppState(), new MonsterAppState(),
-                new LightState(), new PickingAppState() };
+                new LightState(), new PickingAppState(), new SkyboxAppState(),
+                new CameraBookmarkAppState() };
 
         AppStateManager stateManager = getStateManager();
         stateManager.attachAll(states);// 添加所需的AppStates
@@ -169,7 +170,7 @@ public class LoadingAppState extends SubAppState {
 
             // 属性文件的路径
             data.serverRoot = SERVER_ROOT;
-            
+
             value = 2;
             message = "Configurando..";
 

@@ -1,4 +1,5 @@
 package org.pstale.app;
+
 import static org.pstale.constants.SceneConstants.scale;
 
 import java.nio.FloatBuffer;
@@ -259,6 +260,18 @@ public class LoaderAppState extends SubAppState {
             playBGM(field);
 
             /**
+             * 天空
+             */
+            final SkyboxAppState skyboxState = getStateManager().getState(SkyboxAppState.class);
+            if (skyboxState != null) {
+                app.enqueue(new Runnable() {
+                    public void run() {
+                        skyboxState.loadSky(field);
+                    }
+                });
+            }
+
+            /**
              * 环境音效
              */
             setupAmbient(field);
@@ -480,7 +493,7 @@ public class LoaderAppState extends SubAppState {
                 skeletonDebug.setMaterial(mat);
                 model.attachChild(skeletonDebug);
 
-                //ac.createChannel().setAnim("Anim");
+                // ac.createChannel().setAnim("Anim");
             }
 
             model.scale(scale);

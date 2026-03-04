@@ -1,4 +1,5 @@
 package org.pstale.app;
+
 import static org.pstale.constants.SceneConstants.scale;
 
 import org.pstale.utils.GameDate;
@@ -142,6 +143,20 @@ public class LightState extends SubAppState {
             spotLoc.y += height;
         }
         spotLight.setPosition(spotLoc);
+    }
+
+    /**
+     * Returns the current light power (0=night, 1=day).
+     */
+    public float getLightPower() {
+        return gameDate.getLightPower();
+    }
+
+    /**
+     * Returns the GameDate instance for timeline control.
+     */
+    public GameDate getGameDate() {
+        return gameDate;
     }
 
     @Override

@@ -65,6 +65,8 @@ public class GameDate {
     float time = 0;
 
     public void update(float tpf) {
+        if (paused)
+            return;
         time += tpf;
         if (time >= GAME_SECOND) {
             totalSec++;
@@ -188,5 +190,40 @@ public class GameDate {
 
     public int getMinute() {
         return minute;
+    }
+
+    // ========================================================================
+    // Manual time control (for editor timeline)
+    // ========================================================================
+
+    private boolean paused = false;
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    /**
+     * Get current time of day as a value in [0..1] where 0=midnight, 0.5=noon.
+     */
+    public float getTimeOfDayNormalized() {
+        return (float) date_sec / (float) GAME_DAY;
+    }
+
+    /**
+     * Set the time of day from a normalized value in [0..1].
+     */
+    public void setTimeOfDayNormalized(float t) {
+        if (t < 0f)
+            t = 0f;
+        if (t > 1f)
+            t = 1f;
+        // Keep years/months/days, just change the time within the current day
+        long dayStart = totalSec - date_sec;
+        totalSec = dayStart + (long) (t * GAME_DAY);
+        updateTime();
     }
 }
