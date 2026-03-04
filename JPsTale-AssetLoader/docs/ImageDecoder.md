@@ -1,134 +1,134 @@
-# 精灵图片加/解密工具
+# Image Encryption/Decryption Tool
 
-刚开始研究精灵的图片文件时，我用C++制作做一个BMP图片的加解密工具。后来顺手把精灵使用的TGA图片也看了一下，发现是使用同样原理进行的加密。
-此工具现在使用Java重写，并且开源，可以实现对精灵中的BMP、TGA图片进行批量加解密。
+When I first started researching the game's image files, I wrote a BMP image encryption/decryption tool in C++. Later I also looked at the TGA images used by the game and found they use the same encryption principle.
+This tool has now been rewritten in Java and open-sourced. It can batch encrypt/decrypt BMP and TGA images used in the game.
 
-从现在的眼光来看，加密的算法其实非常简单，我们忽略掉文件头2个字节，自看后面的字节：
+Looking at it now, the encryption algorithm is actually very simple. If we skip the first 2 bytes of the file header and look at the bytes that follow:
 
-	04 09 10 19 24 31 40 51 64 79 90 A9
+    04 09 10 19 24 31 40 51 64 79 90 A9
 
-这些字节是16进制，可能看不出规律，但是把它们转化为10进制后再看看呢？
+These bytes are in hexadecimal and the pattern may not be obvious, but convert them to decimal:
 
-	 0   1   2   3   4   5   6   7   8   9  10  11  12  13
-	41  38  04  09  10  19  24  31  40  51  64  79  90  A9
-		     4   9  16  25  36  49  64  81 100 121 144 169
+     0   1   2   3   4   5   6   7   8   9  10  11  12  13
+    41  38  04  09  10  19  24  31  40  51  64  79  90  A9
+    	     4   9  16  25  36  49  64  81 100 121 144 169
 
-* 第一行是字节的序号，从0开始。
-* 第二行是正确文件头和错误文件头之间的差值(16进制)。
-* 第三行是10进制显示的差值。
+- The first row is the byte index, starting from 0.
+- The second row is the difference between the correct and incorrect file headers (hexadecimal).
+- The third row is the same difference in decimal.
 
-实际上，从第三个数字开始，每个字节额外增加了当前序号的平方。
+Starting from the third byte, each byte is offset by the square of its index (i²).
 
-这个游戏在加密图片文件时，通常都是修改了文件头2个字节，然后从第3个字节开始加上序号的平方。BMP图片有16个字节受影响，TGA图片有18个字节受影响。
+The game encrypts image files by modifying the first 2 bytes of the file header, then adding i² to each byte starting from index 2. BMP images have 14 bytes affected, TGA images have 18 bytes affected.
 
-BMP图片的解密过程：
+BMP decryption:
 
-	buffer[0] = 0x42;
-	buffer[1] = 0x4D;
-	for(byte i=2; i<14; i++) {
-		buffer[i] -= (byte)(i*i);
-	}
+    buffer[0] = 0x42;
+    buffer[1] = 0x4D;
+    for(byte i=2; i<14; i++) {
+    	buffer[i] -= (byte)(i*i);
+    }
 
-BMP图片的加密过程：
+BMP encryption:
 
-	buffer[0] = 0x41;
-	buffer[1] = 0x38;
-	for(byte i=2; i<14; i++) {
-		buffer[i] += (byte)(i*i);
-	}
+    buffer[0] = 0x41;
+    buffer[1] = 0x38;
+    for(byte i=2; i<14; i++) {
+    	buffer[i] += (byte)(i*i);
+    }
 
-TGA图片的解密过程：
+TGA decryption:
 
-	buffer[0] = 0x00;
-	buffer[1] = 0x00;
-	for(byte i=2; i<18; i++) {
-		buffer[i] -= (byte)(i*i);
-	}
+    buffer[0] = 0x00;
+    buffer[1] = 0x00;
+    for(byte i=2; i<18; i++) {
+    	buffer[i] -= (byte)(i*i);
+    }
 
-TGA图片的加密过程：
+TGA encryption:
 
-	buffer[0] = 0x47;
-	buffer[1] = 0x38;
-	for(byte i=2; i<18; i++) {
-		buffer[i] += (byte)(i*i);
-	}
+    buffer[0] = 0x47;
+    buffer[1] = 0x38;
+    for(byte i=2; i<18; i++) {
+    	buffer[i] += (byte)(i*i);
+    }
 
 UPDATED BY yan@2016/10/27
 
-## 解密原理
-精灵图片文件的加密方式，是把BMP文件的前14个字节给篡改成错误的数据。下面是2个例子：
+## Decryption Principle
 
-例1：
+The game's image file encryption works by corrupting the first 14 bytes of the BMP file header with incorrect data. Here are 2 examples:
 
-错误的文件头：
+Example 1:
 
-	41 38 3A 09 13 19 24 31 40 51 9A 79 90 A9 28 00 WRONG
-	      3A 09 13 19
+Incorrect file header:
 
-正确的文件头：
+    41 38 3A 09 13 19 24 31 40 51 9A 79 90 A9 28 00 WRONG
+          3A 09 13 19
 
-	42 4D 36 00 03 00 00 00 00 00 36 00 00 00 28 00 RIGHT
-	      36 00 03 00 
+Correct file header:
 
-例2：
+    42 4D 36 00 03 00 00 00 00 00 36 00 00 00 28 00 RIGHT
+          36 00 03 00
 
-错误的文件头：
-	41 38 3C B9 14 19 24 31 40 51 9A 79 90 A9 28 00 WRONG
-	      3C B9 14 19 
+Example 2:
 
-正确的文件头：
+Incorrect file header:
+41 38 3C B9 14 19 24 31 40 51 9A 79 90 A9 28 00 WRONG
+3C B9 14 19
 
-	42 4D 38 B0 04 00 00 00 00 00 36 00 00 00 28 00 RIGHT
-	      38 B0 04 00 
+Correct file header:
 
-可以看出，错误的文件头实际上是在正确的文件头基础上，加了一段固定的数据：
+    42 4D 38 B0 04 00 00 00 00 00 36 00 00 00 28 00 RIGHT
+          38 B0 04 00
 
-	01 15-04-09-10-19-24-31-40-51-64-79-90-A9
-	      04 09 10 19
+As you can see, the incorrect header is produced by adding a fixed data sequence to the correct header:
 
-再仔细看，实际上这14个字节，只有第3、4、5、6这4个位置的字节是变化的，其他位置是不变的。在BMP文件格式中，这4个字节代表文件的实际大小。
+    01 15-04-09-10-19-24-31-40-51-64-79-90-A9
+          04 09 10 19
 
-我们只要算出文件大小，把其他位的数据复原，替换掉错误的文件头，可以解密了。
-例如：
+Looking more closely, out of these 14 bytes, only positions 3, 4, 5, and 6 actually vary — the rest are constant. In the BMP file format, these 4 bytes represent the actual file size.
 
-	(1) 文件大小：6864
-	(2) 十六进制：1AD0
-	(3) 补码：00 00 1A D0
-	(4) 反向：D0 1A 00 00
-	(5) 继续补码：
-	42 4D D0 1A 00 00 00 00 00 00 36 00 00 00 28 00 
+We just need to compute the file size, restore the other byte positions, and replace the corrupted header to decrypt. For example:
 
-## C++代码说明
+    (1) File size: 6864
+    (2) Hexadecimal: 1AD0
+    (3) Padded: 00 00 1A D0
+    (4) Reversed (little-endian): D0 1A 00 00
+    (5) Reconstructed header:
+    42 4D D0 1A 00 00 00 00 00 00 36 00 00 00 28 00
 
-下面这个是核心函数。其主要功能是根据bmp文件大小来计算正确的文件头。
+## C++ Code Explanation
 
-type = false时解密，type = true时加密。
+The function below is the core logic. Its main purpose is to compute the correct file header based on the BMP file size.
 
-	/*解密 & 加密*/
-	void CPtBitmapDlg::encrypt(char *filename, unsigned long size, bool type) 
-	{
-		ofstream out;
-		out.open(filename, ios::in|ios::out|ios::binary);
-		if(out.is_open())
-		{
-			if (type == false) {
-				unsigned char header[14] = {0x42, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x36, 0x00, 0x00, 0x00};
-				memcpy(aHeader, header, 14);
-			}
-			else
-			{
-				unsigned char header[16] = {0x41, 0x38, 0x00, 0x00, 0x00, 0x00, 0x24, 0x31,	0x40, 0x51, 0x9A, 0x79, 0x90, 0xA9};
-				memcpy(aHeader, header, 14);
-				size += 420481284;// 把文件的实际大小加密，这个数字的16进制为：19 10 09 04，颠倒过来就是04 09 10 19
-			}
-			
-			unsigned char *pLen = (unsigned char *)&size;
-			memcpy(&aHeader[2], pLen, 4);// 修改文件大小
-			out.write(aHeader, 14);
-			out.close();
-		}
-	}
+When `type = false`, it decrypts; when `type = true`, it encrypts.
 
-MADE BY 可仪@精灵中国（群号：13463366）
+    /* Decrypt & Encrypt */
+    void CPtBitmapDlg::encrypt(char *filename, unsigned long size, bool type)
+    {
+    	ofstream out;
+    	out.open(filename, ios::in|ios::out|ios::binary);
+    	if(out.is_open())
+    	{
+    		if (type == false) {
+    			unsigned char header[14] = {0x42, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x36, 0x00, 0x00, 0x00};
+    			memcpy(aHeader, header, 14);
+    		}
+    		else
+    		{
+    			unsigned char header[16] = {0x41, 0x38, 0x00, 0x00, 0x00, 0x00, 0x24, 0x31,	0x40, 0x51, 0x9A, 0x79, 0x90, 0xA9};
+    			memcpy(aHeader, header, 14);
+    			size += 420481284;// Encrypt the actual file size; this number in hex is: 19 10 09 04, reversed: 04 09 10 19
+    		}
+
+    		unsigned char *pLen = (unsigned char *)&size;
+    		memcpy(&aHeader[2], pLen, 4);// Patch the file size
+    		out.write(aHeader, 14);
+    		out.close();
+    	}
+    }
+
+MADE BY keyi @ Tales of Pirates China (QQ Group: 13463366)
 
 2015-04-07

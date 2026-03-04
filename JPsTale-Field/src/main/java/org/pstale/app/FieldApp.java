@@ -36,14 +36,11 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         /**
          * 服务端资源的根目录
          */
-        String serverRoot = settings.getString("ServerRoot");
-        boolean checkServer = settings.getBoolean("CheckServer");
-        if (checkServer && serverRoot != null) {
-            assetManager.registerLocator(serverRoot, FileLocator.class);
-
-            LoadingAppState.CHECK_SERVER = true;
-            LoadingAppState.SERVER_ROOT = serverRoot;
-        }
+        // Server files disabled — texture customization mode
+        // String serverRoot = settings.getString("ServerRoot");
+        // boolean checkServer = settings.getBoolean("CheckServer");
+        LoadingAppState.CHECK_SERVER = false;
+        LoadingAppState.SERVER_ROOT = null;
 
         /**
          * 是否使用灯光、法线

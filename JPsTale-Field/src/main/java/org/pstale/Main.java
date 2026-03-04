@@ -189,7 +189,9 @@ public final class Main extends JFrame {
         lightBox.setSelected(source.getBoolean("UseLight"));
 
         serverBox = new JCheckBox(resourceBundle.getString("checkbox.server"));
-        serverBox.setSelected(source.getBoolean("CheckServer"));
+        serverBox.setSelected(false);
+        serverBox.setEnabled(false);
+        serverBox.setToolTipText("Server files disabled — texture customization mode");
 
         SERVER_ROOT = source.getString("ServerRoot");
         if (SERVER_ROOT == null) {
@@ -198,12 +200,9 @@ public final class Main extends JFrame {
 
         serverRootTxt = new JTextField(50);
         serverRootTxt.setEditable(false);
-        serverRootTxt.setText(SERVER_ROOT);
-        if (AssetFactory.checkServerRoot(SERVER_ROOT)) {
-            serverRootTxt.setBackground(new Color(0.8f, 1f, 0.8f));
-        } else {
-            serverRootTxt.setBackground(new Color(1f, 0.8f, 0.8f));
-        }
+        serverRootTxt.setText("");
+        serverRootTxt.setEnabled(false);
+        serverRootTxt.setBackground(new Color(0.9f, 0.9f, 0.9f));
 
         CLIENT_ROOT = source.getString("ClientRoot");
         if (CLIENT_ROOT == null)
@@ -218,6 +217,7 @@ public final class Main extends JFrame {
             clientRootTxt.setBackground(Color.YELLOW);
         }
         JButton serverBtn = new JButton(resourceBundle.getString("button.browser"));
+        serverBtn.setEnabled(false);
         serverBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -570,8 +570,8 @@ public final class Main extends JFrame {
             return false;
         }
 
-        boolean checkServer = serverBox.isSelected();
-        source.putBoolean("CheckServer", checkServer);
+        boolean checkServer = false; // Server files disabled
+        source.putBoolean("CheckServer", false);
 
         boolean useLight = lightBox.isSelected();
         source.putBoolean("UseLight", useLight);

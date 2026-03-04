@@ -1,55 +1,56 @@
-# 数据实体
+# Data Entities
 
-定义并设计精灵中的各种数据实体，整体概念模型(设计中)如下：
+Defines the data structures used by Priston Tale assets. These entities are used by the map texture customization tool to interpret and manipulate game data. The overall conceptual model (work in progress) is shown below:
 
-![概念模型](cdm.png)
+![Conceptual Model](cdm.png)
 
-## 核心实体
+## Core Entities
 
-* 等级(等级/经验值)
-* 攻击(攻击力/攻速/命中率/必杀率/射程/攻击方式/魔法熟练度)
-* 防御(吸收/防御值/格挡率/闪避值/抗晕率)
-* 元素抗性(地/火/雷/冰/毒)
-* 移动速度
-* 恢复(生命/魔法/耐力每秒恢复速度)
-* 强化(直接增加生命值/魔法值/耐力值)
+- Level (level / experience points)
+- Attack (attack power / attack speed / accuracy / critical rate / range / attack type / magic proficiency)
+- Defense (absorption / defense value / block rate / evasion / stun resistance)
+- Elemental Resistance (earth / fire / lightning / ice / poison)
+- Movement Speed
+- Recovery (HP / MP / stamina regeneration per second)
+- Enhancement (directly increases HP / MP / stamina values)
 
-## 玩家/怪物/NPC
+## Player / Monster / NPC
 
-玩家、怪物和NPC在游戏中属于可以互动的物体，它们有一些公共实体。
-### 外观
+Players, monsters, and NPCs are interactive objects in the game. They share some common entities.
 
-* 位置(坐标/朝向)
-* 体型
-* 模型
-* 音效
+### Appearance
 
-### 玩家
+- Position (coordinates / facing direction)
+- Body type
+- Model
+- Sound effects
 
-* 等级(级别/经验值)
-* 属性(力量/精神/才能/敏捷/体质)
-* 职业(编号/种族)
+### Player
 
-### 怪物
+- Level (level / experience points)
+- Attributes (strength / spirit / talent / agility / constitution)
+- Class (ID / race)
 
-* 人工智能(脾气/IQ/视野范围/攻击行为/防御行为/治疗行为/逃跑行为)
-* 掉落物品
-* 说话
+### Monster
+
+- Artificial Intelligence (temperament / IQ / vision range / attack behavior / defense behavior / healing behavior / flee behavior)
+- Item drops
+- Speech
 
 ### NPC
 
-* 对话
-* 售卖物品
-* 特殊功能(锻造/合成/制作道具/镶嵌/奖励/仓库/技能大师/商城/兑奖..)
+- Dialogue
+- Items for sale
+- Special functions (forging / crafting / item creation / socketing / rewards / warehouse / skill master / cash shop / prize exchange...)
 
-## 地区相关实体
+## Region-Related Entities
 
-* 地图模型
-* 门户
-* 传送门
-* 复活点
-* 刷怪点
-* 刷怪(数量/种类/频率)
-* 环境(天空/背景音乐/环境音效/互动物体) 
+- Map model
+- Gateways
+- Portals
+- Respawn points
+- Spawn points
+- Spawning rules (quantity / type / frequency)
+- Environment (sky / background music / ambient sound effects / interactive objects)
 
 UPDATED by yan@2016/10/26

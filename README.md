@@ -1,76 +1,60 @@
-# JPsTale (Priston Tale in Java)
- Redevelop a 3D MMORPG "Priston Tale" in Java language, with free 3D game engine **jMonkeyEngine**
+# JPsTale — Priston Tale Map Texture Customization Tool
 
-使用jMonkeyEngine引擎，对3DMMORPG游戏"Priston Tale"进行二次开发。目前此项目分成若干子项目，并行推进中。
+A set of tools for loading, inspecting, and customizing map textures from the 3D MMORPG "Priston Tale", built in Java with the **jMonkeyEngine** 3D engine.
+
+This project is divided into several subprojects that are developed in parallel.
 
 ## AssetLoader
 
-这是用于解析精灵模型文件的jME3插件。
+A jME3 plugin for parsing Priston Tale asset files.
 
 **AseLoader**
 
-* 解析.ase模型记录的网格/骨骼/动画等数据。
+- Parses mesh, skeleton, and animation data from `.ase` model files.
 
 **InxLoader**
 
-* 解析.inx格式记录的动画索引。
-* 解析.smd格式文件记录的3D网格数据。
-* 解析.smb格式文件记录的骨骼动画数据。
+- Parses animation index data from `.inx` format files.
+- Parses 3D mesh data from `.smd` format files.
+- Parses skeletal animation data from `.smb` format files.
 
-## 资源解析
+## Resource Parsing
 
 **Assets**
 
-* 解析精灵的各种资源文件，诸如1. 地图/装备/怪物/NPC/贴图/音频/特效/天空
+- Parses various Priston Tale resource files, including: maps, textures, models, audio, effects, and sky.
 
 **DataEntity**
 
-* 重新设计精灵的数据结构，并定义相对精简的数据实体。
+- Defines the data structures used by Priston Tale assets.
 
-## 功能性工具
+## Main Tool
 
-**Aging**
+**Field (FieldBox)**
 
-* 锻造模拟器
-* 用于调节服务器的锻造成功率
-* 模拟锻造，用于评估在不同成功率下锻造所需金钱数量/道具数量的期望值。
+- The primary map texture customization and visualization tool.
+- Load and render Priston Tale maps in 3D with their original textures.
+- Inspect and identify textures applied to any surface via the texture picker.
+- Visual wireframe highlight overlay for all surfaces sharing a selected texture.
+- Day/night cycle timeline with lighting preview.
+- Skybox preview with real sky textures.
+- Camera bookmark system with JSON persistence.
+- HUD toggle (F1) and keyboard shortcut help panel (H).
 
-**Craft**
+## Auxiliary Tools
 
-* 合成模拟器
-* 添加/查询/修改合成配方
+**Aging** — Forging simulator for adjusting success rates.
 
-**Monsters**
+**Craft** — Crafting recipe manager.
 
-* 怪物编辑器
-* 添加/查询/修改怪物属性
-* 使用报表统计不同怪物的属性
+**Monsters** — Monster attribute editor and comparison reports.
 
-**NPC**
+**NPC** — NPC manager (positions, item sale lists).
 
-* NPC管理器
- * 添加/编辑/移除NPC
- * 查询/编辑NPC的售卖物品列表
+**Loots** — Monster drop table editor with drop-rate statistics.
 
-**Loots**
-
-* 掉落管理
-* 用于调整怪物的物品掉落表
-* 设置掉率
-* 查询怪物的掉落表
-* 根据物品，查询哪些怪物可以掉落对应物品
-* 统计工具：统计玩家打出某道具可能需要的时间和杀怪数量(期望值)。
-
-**Field**
-
-* 此项目用于视化编辑精灵地图数据。
-* 可以添加/移除大地图。
-* 可以添加/编辑/移除传送门。
-* 可以编辑/预览服务器设置的地图刷怪点。
-* 可以添加/移除地图中的NPC。
- 
 ## GUI
 
 **GUI**
 
-* 使用Lemur+Groovy脚本，重新制作游戏的主界面。
+- Recreates the game's main interface using Lemur + Groovy scripts.
