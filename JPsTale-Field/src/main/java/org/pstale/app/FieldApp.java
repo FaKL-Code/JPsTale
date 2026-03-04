@@ -14,7 +14,6 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.Vector3f;
 
 public class FieldApp extends SimpleApplication implements ActionListener {
 
@@ -104,6 +103,9 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         }
     }
 
+    private static final float MIN_FOV = 10f;
+    private static final float MAX_FOV = 90f;
+
     @Override
     public void simpleUpdate(float tpf) {
         float speed = flyCam.getMoveSpeed();
@@ -112,6 +114,22 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         }
         if (moveDown) {
             cam.setLocation(cam.getLocation().add(0, -speed * tpf, 0));
+        }
+
+        // Clamp FOV to prevent extreme zoom out/in
+        float aspect = (float) cam.getWidth() / cam.getHeight();
+        float near = cam.getFrustumNear();
+        float far = cam.getFrustumFar();
+        float top = cam.getFrustumTop();
+        float fov = (float) Math.toDegrees(2f * Math.atan(top / near));
+        if (fov < MIN_FOV) {
+            fov = MIN_FOV;
+            top = near * (float) Math.tan(Math.toRadians(fov * 0.5f));
+            cam.setFrustum(near, far, -top * aspect, top * aspect, top, -top);
+        } else if (fov > MAX_FOV) {
+            fov = MAX_FOV;
+            top = near * (float) Math.tan(Math.toRadians(fov * 0.5f));
+            cam.setFrustum(near, far, -top * aspect, top * aspect, top, -top);
         }
     }
 
