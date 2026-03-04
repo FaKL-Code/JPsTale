@@ -85,12 +85,12 @@ public class LoadingAppState extends SubAppState {
         if (task != null && future == null) {
             future = excutor.submit(task);
             time = 0;
-            log.info("开始载入数据");
+            log.info("Iniciando carregamento de dados");
         }
 
         if (future != null && !future.isDone()) {
             progressBar.setProgressPercent(task.value / 100f);
-            progressBar.setMessage("进度: " + task.value + "% ... " + task.message);
+            progressBar.setMessage("Progresso: " + task.value + "% ... " + task.message);
         }
 
         if (future != null && future.isDone()) {
@@ -98,14 +98,14 @@ public class LoadingAppState extends SubAppState {
                 Data data = future.get();
                 initLoader(data);
             } catch (Exception e) {
-                log.error("FIELD.txt数据加载失败", e);
+                log.error("Falha ao carregar dados do FIELD.txt", e);
                 getApplication().stop();
             }
 
             task = null;
             future = null;
 
-            log.info("载入用时" + time + "s");
+            log.info("Carregamento levou " + time + "s");
         }
     }
 
@@ -171,7 +171,7 @@ public class LoadingAppState extends SubAppState {
             data.serverRoot = SERVER_ROOT;
             
             value = 2;
-            message = "Config..";
+            message = "Configurando..";
 
             // 解析服务端数据
             if (CHECK_SERVER && SERVER_ROOT != null) {
@@ -188,11 +188,11 @@ public class LoadingAppState extends SubAppState {
                     }
 
                     value = 40 * (i + 1) / len;
-                    message = "Monster:" + (i + 1) + "/" + len;
+                    message = "Monstro:" + (i + 1) + "/" + len;
                 }
 
                 value = 40;
-                message = "Monster:" + data.allMonster.size();
+                message = "Monstro:" + data.allMonster.size();
                 log.info(message);
 
                 // 所有装备数据
@@ -217,12 +217,12 @@ public class LoadingAppState extends SubAppState {
 
             } else {
                 value = 100;
-                message = "No server found";
+                message = "Servidor nao encontrado";
                 log.info(message);
             }
 
             value = 100;
-            message = "完成";
+            message = "Concluido";
 
             return data;
         }

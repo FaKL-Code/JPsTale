@@ -51,7 +51,7 @@ public class EncodeDialog extends JDialog {
 
         this.clientRoot = root;
 
-        this.setTitle("解码..");
+        this.setTitle("Criptografando..");
         this.setSize(400, 80);
         this.setResizable(false);
         this.setModal(true);
@@ -94,7 +94,7 @@ public class EncodeDialog extends JDialog {
             for (int i = 0; i < len; i++) {
 
                 File file = files[i];
-                setTitle("加密.." + file.getName());
+                setTitle("Criptografando.." + file.getName());
                 if (file.isDirectory()) {
                     try {
                         encode(file, 1);
@@ -169,7 +169,7 @@ public class EncodeDialog extends JDialog {
         // 需要解码的文件数量
         len = wavs.size() + bmps.size() + tgas.size() + dirs.size();
 
-        String title = "解码.." + dir.getName();
+        String title = "Criptografando.." + dir.getName();
         setTitle(title);
 
         if (len == 0)

@@ -1,31 +1,42 @@
 apply plugin: "java"
+apply plugin: "application"
+
+mainClassName = "org.pstale.Main"
+
+applicationDefaultJvmArgs = [
+    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+    '--add-opens=java.base/java.nio=ALL-UNNAMED',
+    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+    '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+    '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED'
+]
 
 def jme3 = [v:'3.1.0-stable', g:'org.jmonkeyengine']
 
 dependencies {
-    compile project(':JPsTale-Core')
-    compile project(':JPsTale-Entity')
-    compile project(':JPsTale-Audio')
-    compile project(':JPsTale-GUI')
-    compile project(':JPsTale-Effects')
-    compile project(':JPsTale-Sky')
-    compile project(':JPsTale-AssetLoader')
+    implementation project(':JPsTale-Core')
+    implementation project(':JPsTale-Entity')
+    implementation project(':JPsTale-Audio')
+    implementation project(':JPsTale-GUI')
+    implementation project(':JPsTale-Effects')
+    implementation project(':JPsTale-Sky')
+    implementation project(':JPsTale-AssetLoader')
 
-    compile 'org.json:json:20170516'
+    implementation 'org.json:json:20170516'
 
-    compile "${jme3.g}:jme3-core:${jme3.v}"
-    compile "${jme3.g}:jme3-desktop:${jme3.v}"
-    compile "${jme3.g}:jme3-lwjgl:${jme3.v}"
-    compile "${jme3.g}:jme3-jogg:${jme3.v}"
-    compile "${jme3.g}:jme3-terrain:${jme3.v}"
-    compile "${jme3.g}:jme3-bullet:${jme3.v}"
-    compile "${jme3.g}:jme3-bullet-native:${jme3.v}"
+    implementation "${jme3.g}:jme3-core:${jme3.v}"
+    implementation "${jme3.g}:jme3-desktop:${jme3.v}"
+    implementation "${jme3.g}:jme3-lwjgl:${jme3.v}"
+    implementation "${jme3.g}:jme3-jogg:${jme3.v}"
+    implementation "${jme3.g}:jme3-terrain:${jme3.v}"
+    implementation "${jme3.g}:jme3-bullet:${jme3.v}"
+    implementation "${jme3.g}:jme3-bullet-native:${jme3.v}"
 
-    compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'org.slf4j:slf4j-log4j12:1.7.21'
+    implementation 'org.slf4j:slf4j-api:1.7.21'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.21'
 
-    compile "com.simsilica:lemur:1.10.1"
-    compile "com.simsilica:lemur-proto:1.9.1"
+    implementation "com.simsilica:lemur:1.16.0"
+    implementation "com.simsilica:lemur-proto:1.13.0"
 
-    compile 'org.codehaus.groovy:groovy-all:2.4.10'
+    implementation 'org.codehaus.groovy:groovy-all:2.4.10'
 }

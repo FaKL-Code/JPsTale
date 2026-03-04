@@ -1,7 +1,7 @@
 [
 	{
 		"id":1,
-		"Title":"胶之林",
+		"Title":"Floresta dos Pinheiros",
 		"Code":"fore-3",
 		"Name":"Field/forest/fore-3.ASE",
 		"NameMap":"Field/map/fore-3.tga",
@@ -54,7 +54,7 @@
 	},
 	{
 		"id":2,
-		"Title":"竹之林",
+		"Title":"Floresta dos Bambus",
 		"Code":"fore-2",
 		"Name":"Field/forest/fore-2.ASE",
 		"NameMap":"Field/map/fore-2.tga",
@@ -95,7 +95,7 @@
 	},
 	{
 		"id":3,
-		"Title":"自由庭院",
+		"Title":"Patio da Liberdade",
 		"Code":"fore-1",
 		"Name":"Field/forest/fore-1.ASE",
 		"NameMap":"Field/map/fore-1.tga",
@@ -120,7 +120,7 @@
 	},
 	{
 		"id":4,
-		"Title":"里查登",
+		"Title":"Ricarten",
 		"Code":"village-2",
 		"Name":"Field/Ricarten/village-2.ASE",
 		"NameMap":"Field/map/village-2.tga",
@@ -174,7 +174,7 @@
 	},
 	{
 		"id":5,
-		"Title":"废墟墓地",
+		"Title":"Cemiterio das Ruinas",
 		"Code":"ruin-4",
 		"Name":"Field/Ruin/ruin-4.ASE",
 		"NameMap":"Field/map/ruin-4.tga",
@@ -197,7 +197,7 @@
 	},
 	{
 		"id":6,
-		"Title":"废墟",
+		"Title":"Ruinas",
 		"Code":"ruin-3",
 		"Name":"Field/Ruin/ruin-3.ASE",
 		"NameMap":"Field/map/ruin-3.tga",
@@ -220,7 +220,7 @@
 	},
 	{
 		"id":7,
-		"Title":"废墟村庄",
+		"Title":"Vila das Ruinas",
 		"Code":"ruin-2",
 		"Name":"Field/Ruin/ruin-2.ASE",
 		"NameMap":"Field/map/ruin-2.tga",
@@ -261,7 +261,7 @@
 	},
 	{
 		"id":8,
-		"Title":"遗忘之地",
+		"Title":"Terra Esquecida",
 		"Code":"ruin-1",
 		"Name":"Field/Ruin/ruin-1.ASE",
 		"NameMap":"Field/map/ruin-1.tga",
@@ -296,7 +296,7 @@
 	},
 	{
 		"id":9,
-		"Title":"诅咒之地",
+		"Title":"Terra Amaldicoada",
 		"Code":"De-1",
 		"Name":"Field/desert/De-1.ASE",
 		"NameMap":"Field/map/De-1.tga",
@@ -320,7 +320,7 @@
 	},
 	{
 		"id":10,
-		"Title":"内维斯克",
+		"Title":"Navisko",
 		"Code":"village-1",
 		"Name":"Field/forest/village-1.ASE",
 		"NameMap":"Field/map/village-1.tga",
@@ -358,7 +358,7 @@
 	},
 	{
 		"id":11,
-		"Title":"绿洲",
+		"Title":"Oasis",
 		"Code":"De-2",
 		"Name":"Field/desert/De-2.ASE",
 		"NameMap":"Field/map/De-2.tga",
@@ -380,7 +380,7 @@
 	},
 	{
 		"id":12,
-		"Title":"古代战场",
+		"Title":"Campo de Batalha Antigo",
 		"Code":"De-3",
 		"Name":"Field/desert/De-3.ASE",
 		"NameMap":"Field/map/De-3.tga",
@@ -415,7 +415,7 @@
 	},
 	{
 		"id":13,
-		"Title":"封印之地",
+		"Title":"Terra Selada",
 		"Code":"De-4",
 		"Name":"Field/desert/De-4.ASE",
 		"NameMap":"Field/map/De-4.tga",
@@ -453,7 +453,7 @@
 	},
 	{
 		"id":14,
-		"Title":"古代地牢1层",
+		"Title":"Calabouco Antigo 1F",
 		"Code":"dun-1",
 		"Name":"Field/dungeon/Dun-1.ASE",
 		"NameMap":"Field/map/dun-1.tga",
@@ -496,7 +496,7 @@
 	},
 	{
 		"id":15,
-		"Title":"古代地牢2层",
+		"Title":"Calabouco Antigo 2F",
 		"Code":"dun-2",
 		"Name":"Field/dungeon/Dun-2.ASE",
 		"NameMap":"Field/map/dun-2.tga",
@@ -543,7 +543,7 @@
 	},
 	{
 		"id":16,
-		"Title":"古代地牢3层",
+		"Title":"Calabouco Antigo 3F",
 		"Code":"dun-3",
 		"Name":"Field/dungeon/Dun-3.ASE",
 		"NameMap":"Field/map/dun-3.tga",
@@ -571,7 +571,7 @@
 	},
 	{
 		"id":17,
-		"Title":"GM房间",
+		"Title":"Sala do GM",
 		"Code":"",
 		"Name":"Field/Room/office.ASE",
 		"NameMap":"",
@@ -586,7 +586,7 @@
 	},
 	{
 		"id":18,
-		"Title":"心情树林",
+		"Title":"Bosque do Animo",
 		"Code":"forever-fall-04",
 		"Name":"Field/forever-fall/forever-fall-04.ASE",
 		"NameMap":"Field/map/forever-fall-04.tga",
@@ -631,7 +631,7 @@
 	},
 	{
 		"id":19,
-		"Title":"黄昏树林",
+		"Title":"Bosque do Crepusculo",
 		"Code":"forever-fall-03",
 		"Name":"Field/forever-fall/forever-fall-03.ASE",
 		"NameMap":"Field/map/forever-fall-03.tga",
@@ -689,7 +689,7 @@
 	},
 	{
 		"id":20,
-		"Title":"秋之谷",
+		"Title":"Vale do Outono",
 		"Code":"forever-fall-02",
 		"Name":"Field/forever-fall/forever-fall-02.ASE",
 		"NameMap":"Field/map/forever-fall-02.tga",
@@ -728,7 +728,7 @@
 	},
 	{
 		"id":21,
-		"Title":"风之路",
+		"Title":"Caminho do Vento",
 		"Code":"forever-fall-01",
 		"Name":"Field/forever-fall/forever-fall-01.ASE",
 		"NameMap":"Field/map/forever-fall-01.tga",
@@ -802,7 +802,7 @@
 	},
 	{
 		"id":22,
-		"Title":"菲尔拉",
+		"Title":"Phillai",
 		"Code":"pilai",
 		"Name":"Field/forever-fall/pilai.ASE",
 		"NameMap":"Field/map/pilai.tga",
@@ -903,7 +903,7 @@
 	},
 	{
 		"id":23,
-		"Title":"古代神殿1层",
+		"Title":"Templo Antigo 1F",
 		"Code":"dun-4",
 		"Name":"Field/dungeon/dun-4.ASE",
 		"NameMap":"Field/map/dun-4.tga",
@@ -991,7 +991,7 @@
 	},
 	{
 		"id":24,
-		"Title":"古代神殿2层",
+		"Title":"Templo Antigo 2F",
 		"Code":"dun-5",
 		"Name":"Field/dungeon/dun-5.ASE",
 		"NameMap":"Field/map/dun-5.tga",
@@ -1095,7 +1095,7 @@
 	},
 	{
 		"id":25,
-		"Title":"蘑菇洞穴",
+		"Title":"Caverna dos Cogumelos",
 		"Code":"Tcave",
 		"Name":"Field/cave/Tcave.ASE",
 		"NameMap":"Field/map/Tcave.tga",
@@ -1154,7 +1154,7 @@
 	},
 	{
 		"id":26,
-		"Title":"蜂房洞穴",
+		"Title":"Caverna das Colmeias",
 		"Code":"Mcave",
 		"Name":"Field/cave/Mcave.ASE",
 		"NameMap":"Field/map/Mcave.tga",
@@ -1214,7 +1214,7 @@
 	},
 	{
 		"id":27,
-		"Title":"古代圣殿",
+		"Title":"Santuario Antigo",
 		"Code":"Dcave",
 		"Name":"Field/cave/Dcave.ASE",
 		"NameMap":"Field/map/Dcave.tga",
@@ -1267,7 +1267,7 @@
 	},
 	{
 		"id":28,
-		"Title":"没落都市",
+		"Title":"Cidade em Ruinas",
 		"Code":"iron-1",
 		"Name":"Field/Iron/iron-1.ASE",
 		"NameMap":"Field/map/iron-1.tga",
@@ -1307,7 +1307,7 @@
 	},
 	{
 		"id":29,
-		"Title":"普隆的心脏",
+		"Title":"Coracao de Puron",
 		"Code":"iron-2",
 		"Name":"Field/Iron/iron-2.ASE",
 		"NameMap":"Field/map/iron-2.tga",
@@ -1344,7 +1344,7 @@
 	},
 	{
 		"id":30,
-		"Title":"幽拉村庄",
+		"Title":"Vila Yura",
 		"Code":"ice_ura",
 		"Name":"Field/Ice/ice_ura.ASE",
 		"NameMap":"Field/map/ice_ura.tga",
@@ -1416,7 +1416,7 @@
 	},
 	{
 		"id":32,
-		"Title":"凯拉笔山谷",
+		"Title":"Vale de Kailabi",
 		"Code":"ice1",
 		"Name":"Field/Ice/ice1.ASE",
 		"NameMap":"Field/map/ice1.tga",
@@ -1449,7 +1449,7 @@
 	},
 	{
 		"id":33,
-		"Title":"四转任务",
+		"Title":"Missao da 4a Classe",
 		"Code":"quest_IV",
 		"Name":"Field/Quest/quest_IV.ASE",
 		"NameMap":"Field/map/quest_IV.tga",
@@ -1464,7 +1464,7 @@
 	},
 	{
 		"id":34,
-		"Title":"祝福城堡",
+		"Title":"Castelo Abencaodo",
 		"Code":"castle",
 		"Name":"Field/castle/castle.ASE",
 		"NameMap":"Field/map/castle.tga",
@@ -1505,7 +1505,7 @@
 	},
 	{
 		"id":35,
-		"Title":"贪婪湖泊",
+		"Title":"Lago da Ganancia",
 		"Code":"Greedy",
 		"Name":"Field/Greedy/Greedy.ASE",
 		"NameMap":"Field/map/Greedy.tga",
@@ -1555,7 +1555,7 @@
 	},
 	{
 		"id":36,
-		"Title":"风之谷",
+		"Title":"Vale do Vento",
 		"Code":"ice2",
 		"Name":"Field/Ice/ice_2.ASE",
 		"NameMap":"Field/map/ice2.tga",
@@ -1586,7 +1586,7 @@
 	},
 	{
 		"id":37,
-		"Title":"凯尔祖维的巢穴",
+		"Title":"Ninho de Kailzuvi",
 		"Code":"boss",
 		"Name":"Field/Boss/boss.ASE",
 		"NameMap":"Field/map/Boss.tga",
@@ -1613,7 +1613,7 @@
 	},
 	{
 		"id":38,
-		"Title":"迷失之地",
+		"Title":"Terra Perdida",
 		"Code":"lost",
 		"Name":"Field/Lost/lostisland.ASE",
 		"NameMap":"Field/map/lost.tga",
@@ -1650,7 +1650,7 @@
 	},
 	{
 		"id":39,
-		"Title":"迷失寺庙",
+		"Title":"Templo Perdido",
 		"Code":"Losttemple",
 		"Name":"Field/Losttemple/lost_temple.ASE",
 		"NameMap":"Field/map/Losttemple.tga",
@@ -1668,7 +1668,7 @@
 	},
 	{
 		"id":40,
-		"Title":"场景图",
+		"Title":"Grafo de Cena",
 		"Code":"",
 		"Name":"Field/Fall_Game/Fall_Game.ASE",
 		"NameMap":"",
@@ -1725,7 +1725,7 @@
 	},
 	{
 		"id":41,
-		"Title":"无尽之塔1层",
+		"Title":"Torre Infinita 1F",
 		"Code":"dun-7",
 		"Name":"Field/endless/dun-7.ASE",
 		"NameMap":"Field/map/dun-7.tga",
@@ -1762,7 +1762,7 @@
 	},
 	{
 		"id":42,
-		"Title":"无尽之塔2层",
+		"Title":"Torre Infinita 2F",
 		"Code":"dun-8",
 		"Name":"Field/endless/dun-8.ASE",
 		"NameMap":"Field/map/dun-8.tga",
@@ -1800,7 +1800,7 @@
 	},
 	{
 		"id":43,
-		"Title":"古代神殿3层",
+		"Title":"Templo Antigo 3F",
 		"Code":"dun-6",
 		"Name":"Field/dungeon/Dun-6a.ASE",
 		"NameMap":"Field/map/dun-6.tga",
@@ -1873,7 +1873,7 @@
 	},
 	{
 		"id":44,
-		"Title":"无尽之塔3层",
+		"Title":"Torre Infinita 3F",
 		"Code":"dun-9",
 		"Name":"Field/endless/dun-9.ASE",
 		"NameMap":"Field/map/dun-9.tga",
@@ -1914,7 +1914,7 @@
 	},
 	{
 		"id":45,
-		"Title":"凯拉比矿洞",
+		"Title":"Mina de Kailabi",
 		"Code":"mine-1",
 		"Name":"Field/Mine/mine-1.ASE",
 		"NameMap":"Field/map/mine-1.tga",
@@ -1929,7 +1929,7 @@
 	},
 	{
 		"id":46,
-		"Title":"内维斯克矿洞",
+		"Title":"Mina de Navisko",
 		"Code":"Slab",
 		"Name":"Field/Slab/Slab.ASE",
 		"NameMap":"Field/map/Slab.tga",
@@ -1944,7 +1944,7 @@
 	},
 	{
 		"id":47,
-		"Title":"地精实验室",
+		"Title":"Laboratorio Goblin",
 		"Code":"AncientW",
 		"Name":"Field/AncientW/AncientW.ASE",
 		"NameMap":"Field/map/AncientW.tga",
@@ -1971,7 +1971,7 @@
 	},
 	{
 		"id":48,
-		"Title":"迷失岛屿",
+		"Title":"Ilha Perdida",
 		"Code":"lost3",
 		"Name":"Field/lost/lost3.ASE",
 		"NameMap":"Field/map/lost3.tga",
@@ -1986,7 +1986,7 @@
 	},
 	{
 		"id":49,
-		"Title":"远古草地",
+		"Title":"Prado Ancestral",
 		"Code":"fo3",
 		"Name":"Field/custom/fo3.ase",
 		"NameMap":"Field/map/fo3.tga",
@@ -2001,7 +2001,7 @@
 	},
 	{
 		"id":50,
-		"Title":"远古森林",
+		"Title":"Floresta Ancestral",
 		"Code":"fo2",
 		"Name":"Field/custom/fo2.ase",
 		"NameMap":"Field/map/fo2.tga",
@@ -2016,7 +2016,7 @@
 	},
 	{
 		"id":51,
-		"Title":"绿野仙踪",
+		"Title":"Campos Encantados",
 		"Code":"fo1",
 		"Name":"Field/custom/fo1.ase",
 		"NameMap":"Field/map/fo1.tga",
@@ -2031,7 +2031,7 @@
 	},
 	{
 		"id":52,
-		"Title":"阿瑞斯城",
+		"Title":"Cidade de Ares",
 		"Code":"town1",
 		"Name":"Field/custom/town1.ase",
 		"NameMap":"Field/map/town1.tga",
@@ -2052,7 +2052,7 @@
 	},
 	{
 		"id":53,
-		"Title":"楼兰古城",
+		"Title":"Cidade Antiga de Loulan",
 		"Code":"ba1",
 		"Name":"Field/Custom/ba1.ASE",
 		"NameMap":"Field/map/ba1.tga",
@@ -2067,7 +2067,7 @@
 	},
 	{
 		"id":54,
-		"Title":"茶马古道",
+		"Title":"Rota do Cha",
 		"Code":"ba2",
 		"Name":"Field/Custom/ba2.ASE",
 		"NameMap":"Field/map/ba2.tga",
@@ -2082,7 +2082,7 @@
 	},
 	{
 		"id":55,
-		"Title":"庞贝遗迹",
+		"Title":"Ruinas de Pompeia",
 		"Code":"ba3",
 		"Name":"Field/Custom/ba3.ASE",
 		"NameMap":"Field/map/ba3.tga",
@@ -2097,7 +2097,7 @@
 	},
 	{
 		"id":56,
-		"Title":"热砂栈道",
+		"Title":"Passarela de Areia Quente",
 		"Code":"ba4",
 		"Name":"Field/Custom/ba4.ASE",
 		"NameMap":"Field/map/ba4.tga",
@@ -2112,7 +2112,7 @@
 	},
 	{
 		"id":57,
-		"Title":"米拉遗迹",
+		"Title":"Ruinas de Mira",
 		"Code":"iron3",
 		"Name":"Field/Iron/iron3.ASE",
 		"NameMap":"Field/map/iron3.tga",
@@ -2135,7 +2135,7 @@
 	},
 	{
 		"id":58,
-		"Title":"熔岩隧道",
+		"Title":"Tunel de Lava",
 		"Code":"dc1",
 		"Name":"Field/Boss/dark_boss.ASE",
 		"NameMap":"Field/map/dc1.tga",

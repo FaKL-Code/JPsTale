@@ -89,6 +89,7 @@ public class LoaderAppState extends SubAppState {
     }
 
     List<Field> fields = new ArrayList<Field>();
+    Field currentField = null;
     Vector3f center;
 
     Texture mapRes = null;
@@ -125,6 +126,8 @@ public class LoaderAppState extends SubAppState {
             return;
         }
 
+        currentField = field;
+
         /**
          * 判断缓存中是否已经有这个地图了。
          */
@@ -150,6 +153,40 @@ public class LoaderAppState extends SubAppState {
     }
 
     Field field = null;
+
+    /**
+     * Recarregar o mapa atual, limpando o cache de assets para forcar
+     * a releitura dos arquivos do disco.
+     */
+    public void reloadModel() {
+        if (task != null) {
+            return;
+        }
+
+        if (currentField == null) {
+            logger.debug("Nenhum mapa carregado para recarregar.");
+            return;
+        }
+
+        final Field toReload = currentField;
+
+        // Remove do cache para permitir novo carregamento
+        fields.remove(toReload);
+
+        // Limpa os filhos do rootNode (geometria do mapa atual)
+        app.enqueue(new Runnable() {
+            public void run() {
+                rootNode.detachAllChildren();
+            }
+        });
+
+        // Limpa o cache do AssetManager para forcar releitura do disco
+        assetManager.clearCache();
+
+        // Recarrega o mapa
+        loadModel(toReload);
+    }
+
     Callable<Void> loadTask = new Callable<Void>() {
 
         @Override

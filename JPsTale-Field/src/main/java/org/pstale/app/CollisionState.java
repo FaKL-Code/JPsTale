@@ -71,7 +71,7 @@ public class CollisionState extends BaseAppState {
     /**
      * 是否启动碰撞检测。
      */
-    boolean enable = true;
+    boolean enable = false;
 
     // 运动逻辑
     private boolean left = false, right = false, forward = false, backward = false;
@@ -144,63 +144,49 @@ public class CollisionState extends BaseAppState {
         if (player == null)
             return;
 
-        if (!enable) {// 不适用碰撞检测的时候，让play的位置跟随摄像机。
-
-            // 设置碰撞检测的原点
-            orgin.set(cam.getLocation());
-            orgin.y = 1000 / scale;
-
-            CollisionResult result = getCollisionResult(orgin);
-            if (result != null) {
-                orgin.set(result.getContactPoint());
-                // 玩家碰撞形状是一个胶囊体，坐标在胶囊体的中心。为了让胶囊体出现在地表，需要将坐标上移一半个高度。
-                orgin.y += halfH;
-                player.setPhysicsLocation(orgin);
-                lastOnGroundLoc.set(orgin);
-            }
-
-        } else {
-            // 人物行走
-            camDir.set(cam.getDirection()).multLocal(0.6f);
-            camLeft.set(cam.getLeft()).multLocal(0.4f);
-            walkDirection.set(0, 0, 0);
-            if (left) {
-                walkDirection.addLocal(camLeft);
-            }
-            if (right) {
-                walkDirection.addLocal(camLeft.negate());
-            }
-            if (forward) {
-                walkDirection.addLocal(camDir);
-            }
-            if (backward) {
-                walkDirection.addLocal(camDir.negate());
-            }
-            walkDirection.y = 0;
-            walkDirection.normalizeLocal().multLocal(moveSpeed);
-            player.setWalkDirection(walkDirection);
-
-            /**
-             * 检测玩家有无掉出地图
-             */
-            // 设置原点
-            orgin.set(player.getPhysicsLocation());
-            // 我们检测的是玩家脚下的点，所以Y坐标要减去胶囊体一半的高度。
-            orgin.y -= halfH;
-
-            CollisionResult result = getCollisionResult(orgin);
-            if (result == null) {
-                player.setPhysicsLocation(lastOnGroundLoc);
-                // player.setWalkDirection(Vector3f.ZERO);
-            } else {
-                lastOnGroundLoc.set(player.getPhysicsLocation());
-            }
-
-            // 移动摄像机，使摄像机跟随胶囊体。
-            orgin.set(lastOnGroundLoc);
-            orgin.y += halfH;
-            cam.setLocation(orgin);
+        if (!enable) {
+            // Free fly mode - FlyCam controls the camera freely
+            // Just sync player physics location to avoid teleport when re-enabling
+            player.setPhysicsLocation(cam.getLocation());
+            lastOnGroundLoc.set(cam.getLocation());
+            return;
         }
+
+        // Collision mode - character physics controls movement
+        camDir.set(cam.getDirection()).multLocal(0.6f);
+        camLeft.set(cam.getLeft()).multLocal(0.4f);
+        walkDirection.set(0, 0, 0);
+        if (left) {
+            walkDirection.addLocal(camLeft);
+        }
+        if (right) {
+            walkDirection.addLocal(camLeft.negate());
+        }
+        if (forward) {
+            walkDirection.addLocal(camDir);
+        }
+        if (backward) {
+            walkDirection.addLocal(camDir.negate());
+        }
+        walkDirection.y = 0;
+        walkDirection.normalizeLocal().multLocal(moveSpeed);
+        player.setWalkDirection(walkDirection);
+
+        // Check if player fell off the map
+        orgin.set(player.getPhysicsLocation());
+        orgin.y -= halfH;
+
+        CollisionResult result = getCollisionResult(orgin);
+        if (result == null) {
+            player.setPhysicsLocation(lastOnGroundLoc);
+        } else {
+            lastOnGroundLoc.set(player.getPhysicsLocation());
+        }
+
+        // Move camera to follow character capsule
+        orgin.set(lastOnGroundLoc);
+        orgin.y += halfH;
+        cam.setLocation(orgin);
     }
 
     /**

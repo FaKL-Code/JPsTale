@@ -57,7 +57,8 @@ public class FieldApp extends SimpleApplication {
          */
         Style.initStyle(this);
 
-        flyCam.setMoveSpeed(50);
+        flyCam.setMoveSpeed(1000);
+        flyCam.setZoomSpeed(50);
         flyCam.setDragToRotate(true);
         inputManager.addMapping("FLYCAM_RotateDrag", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
     }

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd \"/c/Users/starl/Downloads/MonsterPKv4410/Field/forest/12-1.bmp\")"
+    ]
+  }
+}

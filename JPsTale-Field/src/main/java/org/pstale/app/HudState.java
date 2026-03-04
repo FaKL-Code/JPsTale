@@ -201,7 +201,7 @@ public class HudState extends BaseAppState {
          */
         Container window = new Container("glass");
         // 标题
-        window.addChild(new Label("所有区域列表", new ElementId("title"), "glass"));
+        window.addChild(new Label("Lista de Regioes", new ElementId("title"), "glass"));
         // 初始化列表数据
         final DataState dataState = getStateManager().getState(DataState.class);
         if (dataState != null) {
@@ -217,7 +217,7 @@ public class HudState extends BaseAppState {
         window.addChild(listBox);
 
         // 载入按钮
-        final Action load = new Action("载入地图") {
+        final Action load = new Action("Carregar Mapa") {
             @Override
             public void execute(Button b) {
                 Integer selected = listBox.getSelectionModel().getSelection();
@@ -244,10 +244,18 @@ public class HudState extends BaseAppState {
         };
 
         // 编辑地图
-        final Action edit = new Action("Modify") {
+        final Action edit = new Action("Modificar") {
             @Override
             public void execute(Button b) {
-                // not support yet
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        LoaderAppState state = getStateManager().getState(LoaderAppState.class);
+                        if (state != null) {
+                            state.reloadModel();
+                        }
+                        return null;
+                    }
+                });
             }
         };
 
@@ -283,25 +291,25 @@ public class HudState extends BaseAppState {
         CursorEventControl.addListenersToSpatial(window, new DragHandler());
 
         window.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0f, 0f, 0.5f), 5, 5, 0.02f, false));
-        window.addChild(new Label("Settings", new ElementId("header"), "glass"));
+        window.addChild(new Label("Opcoes", new ElementId("header"), "glass"));
         window.addChild(new Panel(2, 2, ColorRGBA.White, "glass")).setUserData(LayerComparator.LAYER, 2);
 
         // Adding components returns the component so we can set other things
         // if we want.
-        Checkbox temp = window.addChild(new Checkbox("显示坐标系"));
+        Checkbox temp = window.addChild(new Checkbox("Mostrar Eixos"));
         temp.setChecked(true);
         showAxisRef = temp.getModel().createReference();
 
-        temp = window.addChild(new Checkbox("显示网格线"));
+        temp = window.addChild(new Checkbox("Mostrar Grade"));
         temp.setChecked(false);
         showMeshRef = temp.getModel().createReference();
 
-        temp = window.addChild(new Checkbox("Collision"));
-        temp.setChecked(true);
+        temp = window.addChild(new Checkbox("Colisao"));
+        temp.setChecked(false);
         collisionRef = temp.getModel().createReference();
 
-        window.addChild(new Label("摄像机速度:"));
-        DefaultRangedValueModel model = new DefaultRangedValueModel(0, 1000, 50);
+        window.addChild(new Label("Vel. Camera:"));
+        DefaultRangedValueModel model = new DefaultRangedValueModel(0, 1000, 1000);
         final Slider redSlider = new Slider(model, "glass");
         redSlider.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.5f, 0.1f, 0.1f, 0.5f), 5, 5, 0.02f, false));
         speedRef = window.addChild(redSlider).getModel().createReference();
@@ -330,7 +338,7 @@ public class HudState extends BaseAppState {
         // 10:01:29,739 DEBUG [LoaderAppState] BOSS:超级刀斧手 伴生小怪:青精灵*8 刷新时段:4
 
         Container window = new Container("glass");
-        window.addChild(new Label("区域", new ElementId("title"), "glass"));
+        window.addChild(new Label("Regiao", new ElementId("title"), "glass"));
 
         // 初始化列表数据
         TabbedPanel tabPanel = new TabbedPanel("glass");
@@ -340,7 +348,7 @@ public class HudState extends BaseAppState {
          * 生态信息界面
          */
         Container creaturePanel = new Container("glass");
-        tabPanel.addTab("怪物", creaturePanel);
+        tabPanel.addTab("Monstros", creaturePanel);
 
         ListBox<String> mlistBox = new ListBox<String>(monsterList, "glass");
         mlistBox.setVisibleItems(10);
@@ -350,7 +358,7 @@ public class HudState extends BaseAppState {
          * 生态信息界面
          */
         Container bossPanel = new Container("glass");
-        tabPanel.addTab("BOSS", bossPanel);
+        tabPanel.addTab("Chefes", bossPanel);
 
         ListBox<String> blistBox = new ListBox<String>(bossList, "glass");
         blistBox.setVisibleItems(10);
@@ -360,7 +368,7 @@ public class HudState extends BaseAppState {
          * 刷怪点信息界面
          */
         Container spawnPointPanel = new Container("glass");
-        tabPanel.addTab("刷怪点", spawnPointPanel);
+        tabPanel.addTab("Spawns", spawnPointPanel);
 
         ListBox<String> spplistBox = new ListBox<String>(spawnPointList, "glass");
         spplistBox.setVisibleItems(10);
@@ -370,7 +378,7 @@ public class HudState extends BaseAppState {
          * NPC界面
          */
         Container npcPanel = new Container("glass");
-        tabPanel.addTab("NPC", npcPanel);
+        tabPanel.addTab("NPCs", npcPanel);
 
         // 创建一个ListBox控件，并添加到窗口中
         ListBox<String> listBox = new ListBox<String>(npcList, "glass");

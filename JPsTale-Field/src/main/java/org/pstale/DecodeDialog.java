@@ -51,7 +51,7 @@ public class DecodeDialog extends JDialog {
 
         this.clientRoot = root;
 
-        this.setTitle("解码..");
+        this.setTitle("Decodificando..");
         this.setSize(400, 80);
         this.setResizable(false);
         this.setModal(true);
@@ -94,7 +94,7 @@ public class DecodeDialog extends JDialog {
             for (int i = 0; i < len; i++) {
 
                 File file = files[i];
-                setTitle("解码.." + file.getName());
+                setTitle("Decodificando.." + file.getName());
                 if (file.isDirectory()) {
                     try {
                         decode(file, 1);
@@ -171,7 +171,7 @@ public class DecodeDialog extends JDialog {
         // 需要解码的文件数量
         len = wavs.size() + bmps.size() + tgas.size() + dirs.size();
 
-        String title = "解码.." + dir.getName();
+        String title = "Decodificando.." + dir.getName();
         setTitle(title);
 
         if (len == 0)

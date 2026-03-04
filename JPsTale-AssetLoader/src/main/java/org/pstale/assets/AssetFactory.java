@@ -240,6 +240,7 @@ public class AssetFactory {
     public static Node loadStage3D(final String name) {
         String smd = AssetNameUtils.changeExt(name, "smd");
         SmdKey key = new SmdKey(smd, SMDTYPE.STAGE3D);
+        setFolder(key.getFolder());
         Stage stage = (Stage) assetManager.loadAsset(key);
         return SceneBuilder.buildScene3D(stage, smd);
     }

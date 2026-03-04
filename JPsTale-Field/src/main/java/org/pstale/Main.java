@@ -48,7 +48,7 @@ public final class Main extends JFrame {
     private static final Logger logger = Logger.getLogger(Main.class);
     private static final long serialVersionUID = 1L;
 
-    private static final String TITLE = "精灵区域管理器";
+    private static final String TITLE = "Gerenciador de Zonas";
 
     /**
      * 服务端的路径
@@ -182,7 +182,7 @@ public final class Main extends JFrame {
         }
 
         JPanel pathPanel = new JPanel(new GridBagLayout());
-        pathPanel.setBorder(BorderFactory.createTitledBorder("资源路径"));
+        pathPanel.setBorder(BorderFactory.createTitledBorder("Caminhos dos Recursos"));
 
         lightBox = new JCheckBox(resourceBundle.getString("checkbox.light"));
         lightBox.setSelected(source.getBoolean("UseLight"));
@@ -336,7 +336,7 @@ public final class Main extends JFrame {
         this.getContentPane().add(pathPanel, BorderLayout.NORTH);
 
         JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createTitledBorder("显示配置"));
+        mainPanel.setBorder(BorderFactory.createTitledBorder("Configuracoes de Exibicao"));
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -541,7 +541,7 @@ public final class Main extends JFrame {
         if (AssetFactory.checkClientRoot(CLIENT_ROOT)) {
             source.put("ClientRoot", CLIENT_ROOT);
         } else {
-            JOptionPane.showMessageDialog(this, resourceBundle.getString("error.clientrootnull"), "Error",
+            JOptionPane.showMessageDialog(this, resourceBundle.getString("error.clientrootnull"), "Erro",
                     JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -621,13 +621,13 @@ public final class Main extends JFrame {
                     source.put("ServerRoot", SERVER_ROOT);
                 } else {
                     int rVal = JOptionPane.showConfirmDialog(this, resourceBundle.getString("error.serverrootnull"),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                            "Erro", JOptionPane.ERROR_MESSAGE);
                     return (rVal == JOptionPane.OK_OPTION);
                 }
             }
 
         } else {
-            JOptionPane.showMessageDialog(this, resourceBundle.getString("error.unsupportedmode"), "Error",
+            JOptionPane.showMessageDialog(this, resourceBundle.getString("error.unsupportedmode"), "Erro",
                     JOptionPane.ERROR_MESSAGE);
         }
 
@@ -894,7 +894,7 @@ public final class Main extends JFrame {
             chooser = new JFileChooser();
             chooser.setDialogType(JFileChooser.OPEN_DIALOG);
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            chooser.setDialogTitle("请选择文件夹");
+            chooser.setDialogTitle("Selecione uma pasta");
         }
         return chooser;
     }
