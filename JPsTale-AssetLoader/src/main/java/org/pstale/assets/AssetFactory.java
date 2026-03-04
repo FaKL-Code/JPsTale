@@ -758,6 +758,31 @@ public class AssetFactory {
             rs.setDepthTest(true);
             rs.setFaceCullMode(FaceCullMode.Off);
         }
+        // --- Auto-detect alpha channel when no transparency flags are set ---
+        // Collision guardrails/fences (Transparency==0, MapOpacity==0, BlendType==0)
+        // still use TGA textures with an alpha channel. Without explicit flags the
+        // renderer treats them as fully opaque, painting the empty areas with the
+        // texture background colour instead of showing geometry behind. If the
+        // texture turns out to have alpha support we apply the same cutout path.
+        else if (m.BlendType == 0) {
+            MatParam p = mat.getParam("ColorMap");
+            if (p != null && p.getValue() instanceof Texture) {
+                Texture t = (Texture) p.getValue();
+                if (t.getImage() != null) {
+                    // Formats with alpha: RGBA8, ABGR8, RGB5A1, Luminance8Alpha8, DXT3, DXT5, etc.
+                    String fmtName = t.getImage().getFormat().name();
+                    boolean hasAlpha = fmtName.startsWith("RGBA") || fmtName.startsWith("ABGR")
+                            || fmtName.equals("RGB5A1") || fmtName.contains("Alpha");
+                    if (hasAlpha) {
+                        mat.setFloat("AlphaDiscardThreshold", 0.5f);
+                        rs.setBlendMode(BlendMode.Off);
+                        rs.setDepthWrite(true);
+                        rs.setFaceCullMode(FaceCullMode.Off);
+                        disableMipmapsForCutout(mat);
+                    }
+                }
+            }
+        }
     }
 
     /**

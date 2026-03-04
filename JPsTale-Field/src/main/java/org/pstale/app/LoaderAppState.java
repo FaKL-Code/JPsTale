@@ -256,6 +256,57 @@ public class LoaderAppState extends SubAppState {
         textureOverrideFolder = null;
     }
 
+    // -----------------------------------------------------------------------
+    // Load a single arbitrary SMD/ASE file without the full field setup
+    // -----------------------------------------------------------------------
+
+    /** Path of the model requested by loadSpecificModel(); null when idle. */
+    private String smdToLoad = null;
+
+    /**
+     * Loads any SMD/ASE path directly, replacing the current scene geometry.
+     * Stage-specific setup (BGM, minimap, collision, portals) is not triggered.
+     * Respects the current texture folder override.
+     *
+     * @param modelPath e.g. "Field/forest/fore-3.ASE" or "Field/forest/3ani-01.ASE"
+     */
+    public void loadSpecificModel(final String modelPath) {
+        if (task != null)
+            return;
+        smdToLoad = modelPath;
+
+        app.enqueue(new Runnable() {
+            public void run() {
+                rootNode.detachAllChildren();
+            }
+        });
+        assetManager.clearCache();
+        task = loadSpecificTask;
+    }
+
+    private final Callable<Void> loadSpecificTask = new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+            final String path = smdToLoad;
+            smdToLoad = null;
+            if (path == null)
+                return null;
+
+            final Spatial model = AssetFactory.loadStage3D(path, textureOverrideFolder);
+            if (model == null) {
+                logger.warn("Falha ao carregar SMD: {}", path);
+                return null;
+            }
+            model.scale(scale);
+            app.enqueue(new Runnable() {
+                public void run() {
+                    rootNode.attachChild(model);
+                }
+            });
+            return null;
+        }
+    };
+
     /**
      * Returns the texture folder currently in use: the override folder if set,
      * otherwise the folder derived from the current field's map path.

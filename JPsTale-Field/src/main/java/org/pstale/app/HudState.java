@@ -1,10 +1,15 @@
 package org.pstale.app;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.pstale.app.ModelViewerState.Category;
 import org.pstale.app.ModelViewerState.ModelEntry;
@@ -61,6 +66,9 @@ public class HudState extends BaseAppState {
     private VersionedList<String> fieldList = new VersionedList<String>();
     /** Text field showing the active texture folder (editable for preset swap). */
     private TextField textureOverrideFolderField;
+
+    /** Remembers the last directory opened in the SMD file chooser. */
+    private File lastSmdDir = null;
 
     private VersionedReference<Boolean> showAxisRef;
     private VersionedReference<Boolean> showMeshRef;
@@ -343,7 +351,7 @@ public class HudState extends BaseAppState {
 
         // 创建一个ListBox控件，并添加到窗口中
         listBox = new ListBox<String>(fieldList, "glass");
-        listBox.setVisibleItems(12);
+        listBox.setVisibleItems(10);
         window.addChild(listBox);
 
         // 载入按钮
@@ -424,9 +432,22 @@ public class HudState extends BaseAppState {
         }, "glass"));
         // -------------------------------------------------------------------
 
-        // 限制窗口的最小宽度
+        // SMD file chooser button -------------------------------------------
+        window.addChild(new Panel(2, 1, ColorRGBA.Gray, "glass")); // separator
+        window.addChild(new ActionButton(new Action("Carregar SMD...") {
+            @Override
+            public void execute(Button b) {
+                openSmdFileChooser();
+            }
+        }, "glass"));
+        // -------------------------------------------------------------------
+
+        // 限制窗口的最小宽度, clamped to screen height
         Vector3f hudSize = new Vector3f(160, 0, 0);
         hudSize.maxLocal(window.getPreferredSize());
+        if (hudSize.y > height - 40) {
+            hudSize.y = height - 40;
+        }
         window.setPreferredSize(hudSize);
 
         // 将窗口添加到屏幕右上角。
@@ -437,6 +458,65 @@ public class HudState extends BaseAppState {
         trackHover(window);
 
         guiNode.attachChild(window);
+    }
+
+    /**
+     * Opens a native file chooser on the Swing EDT, starting from the game
+     * client root directory. The selected file path is converted to an
+     * asset-relative path and loaded via {@code LoaderAppState.loadSpecificModel}.
+     */
+    private void openSmdFileChooser() {
+        // Determine starting directory from the game client root
+        final String clientRoot = getApplication().getContext().getSettings().getString("ClientRoot");
+        final File startDir;
+        if (lastSmdDir != null) {
+            startDir = lastSmdDir;
+        } else if (clientRoot != null && !clientRoot.isEmpty()) {
+            File fieldDir = new File(clientRoot, "Field");
+            startDir = fieldDir.isDirectory() ? fieldDir : new File(clientRoot);
+        } else {
+            startDir = null;
+        }
+
+        // Open the dialog on the Swing thread to avoid blocking the GL thread
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JFileChooser chooser = new JFileChooser(startDir);
+                chooser.setDialogTitle("Selecionar arquivo SMD / ASE");
+                chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                chooser.setFileFilter(new FileNameExtensionFilter(
+                        "Modelos 3D (*.smd, *.ase)", "smd", "ase"));
+                if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                final File selected = chooser.getSelectedFile();
+                lastSmdDir = selected.getParentFile();
+
+                // Build asset-relative path
+                String absPath = selected.getAbsolutePath().replace('\\', '/');
+                String relativePath = absPath; // fallback
+                if (clientRoot != null && !clientRoot.isEmpty()) {
+                    String root = clientRoot.replace('\\', '/');
+                    if (!root.endsWith("/"))
+                        root += "/";
+                    if (absPath.startsWith(root)) {
+                        relativePath = absPath.substring(root.length());
+                    }
+                }
+
+                final String path = relativePath;
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        LoaderAppState state = getStateManager().getState(LoaderAppState.class);
+                        if (state != null) {
+                            state.loadSpecificModel(path);
+                        }
+                        return null;
+                    }
+                });
+            }
+        });
     }
 
     /** True once the model viewer has been placed below the region list. */
