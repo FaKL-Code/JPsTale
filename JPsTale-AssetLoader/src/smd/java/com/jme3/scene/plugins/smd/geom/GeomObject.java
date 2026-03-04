@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.pstale.assets.Flyweight;
 
 import com.jme3.scene.plugins.smd.material.TEXLINK;
-import com.jme3.scene.plugins.smd.math.Matrix4F;
 import com.jme3.scene.plugins.smd.math.Matrix4D;
+import com.jme3.scene.plugins.smd.math.Matrix4F;
 import com.jme3.scene.plugins.smd.math.Vector3D;
 import com.jme3.util.LittleEndien;
 
@@ -24,12 +24,12 @@ public class GeomObject extends Flyweight {
      * 顶点数据 VertexBuffer
      */
     public Vertex[] Vertex;
-    
+
     /**
      * 面数据 IndexBuffer
      */
     public Face[] Face;
-    
+
     /**
      * 纹理坐标
      */
@@ -102,7 +102,7 @@ public class GeomObject extends Flyweight {
     int lpPhysuque;
     int lpOldTexLink;
     // //////////////////
-    
+
     /**
      * 各顶点对应的骨骼名称，用于骨骼蒙皮动画。
      */
@@ -112,7 +112,7 @@ public class GeomObject extends Flyweight {
      * 最大帧号，用于计算动画时间。
      */
     public int maxFrame = 0;
-    
+
     public GeomObject() {
         NodeName = null;
         NodeParent = null;
@@ -294,7 +294,7 @@ public class GeomObject extends Flyweight {
             scaleArray[i] = new TransScale();
             scaleArray[i].loadData(in);
         }
-        
+
         // 统计最大帧数
         maxFrame = getMaxFrame();
 
@@ -341,6 +341,7 @@ public class GeomObject extends Flyweight {
 
     /**
      * 绑定骨骼
+     * 
      * @param skeleton
      */
     public boolean setSkeleton(PAT3D skeleton) {
@@ -353,7 +354,7 @@ public class GeomObject extends Flyweight {
         }
         return false;
     }
-    
+
     /**
      * 统计最大帧号，计算动画时常。
      */

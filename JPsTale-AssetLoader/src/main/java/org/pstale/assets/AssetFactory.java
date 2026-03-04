@@ -53,11 +53,11 @@ import com.jme3.script.plugins.field.SpcLoader;
 import com.jme3.script.plugins.field.SpmLoader;
 import com.jme3.script.plugins.field.SppLoader;
 import com.jme3.script.plugins.item.ItemLoader;
+import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.texture.Texture2D;
-import com.jme3.texture.Image.Format;
 import com.jme3.util.BufferUtils;
 
 /**
@@ -467,8 +467,8 @@ public class AssetFactory {
                 for (int x = 0; x < newW; x++) {
                     int argb = dstImg.getRGB(x, y);
                     newBuf.put((byte) ((argb >> 16) & 0xFF)); // R
-                    newBuf.put((byte) ((argb >> 8) & 0xFF));  // G
-                    newBuf.put((byte) (argb & 0xFF));         // B
+                    newBuf.put((byte) ((argb >> 8) & 0xFF)); // G
+                    newBuf.put((byte) (argb & 0xFF)); // B
                     if (hasAlpha) {
                         newBuf.put((byte) ((argb >> 24) & 0xFF)); // A
                     }
