@@ -1,5 +1,7 @@
 package org.pstale.app;
 
+import static org.pstale.constants.SceneConstants.scale;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +25,6 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
-
-import static org.pstale.constants.SceneConstants.scale;
 
 /**
  * 碰撞检测模块
@@ -240,6 +240,23 @@ public class CollisionState extends BaseAppState {
                 bullet.getPhysicsSpace().add(player);
             }
         }
+    }
+
+    /**
+     * Removes all collision meshes and the player from the physics space.
+     */
+    public void clearMesh() {
+        if (getStateManager().hasState(bullet)) {
+            for (PhysicsRigidBody rigid : rigids) {
+                bullet.getPhysicsSpace().remove(rigid);
+            }
+            if (player != null) {
+                bullet.getPhysicsSpace().remove(player);
+                player = null;
+            }
+        }
+        meshes.clear();
+        rigids.clear();
     }
 
     public void setPlayerLocation(Vector3f center) {

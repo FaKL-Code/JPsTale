@@ -265,6 +265,107 @@ public class LoaderAppState extends SubAppState {
         textureOverrideFolder = null;
     }
 
+    /**
+     * Full reset: clears the scene, asset cache, all sub-state geometry,
+     * stops music, and resets the camera — as if the application was just opened.
+     */
+    public void resetAll() {
+        if (task != null)
+            return;
+
+        // Clear loaded-field cache
+        fields.clear();
+        currentField = null;
+        field = null;
+        smdToLoad = null;
+        textureOverrideFolder = null;
+        savedCamLoc = null;
+        savedCamRot = null;
+        mainModel = null;
+        mapRes = null;
+        titleRes = null;
+
+        // Detach all scene geometry
+        app.enqueue(new Runnable() {
+            public void run() {
+                rootNode.detachAllChildren();
+            }
+        });
+
+        // Clear asset cache so everything is re-read from disk
+        assetManager.clearCache();
+
+        // Stop music
+        MusicAppState music = getStateManager().getState(MusicAppState.class);
+        if (music != null) {
+            music.setSong(null);
+        }
+
+        // Clear sub-state visuals (ambient spheres, gate markers, etc.)
+        final AmbientAppState ambient = getStateManager().getState(AmbientAppState.class);
+        if (ambient != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    ambient.rootNode.detachAllChildren();
+                }
+            });
+        }
+        final FieldgateAppState fieldgate = getStateManager().getState(FieldgateAppState.class);
+        if (fieldgate != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    fieldgate.rootNode.detachAllChildren();
+                }
+            });
+        }
+        final WarpgateAppState warpgate = getStateManager().getState(WarpgateAppState.class);
+        if (warpgate != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    warpgate.rootNode.detachAllChildren();
+                }
+            });
+        }
+        final MonsterAppState monsters = getStateManager().getState(MonsterAppState.class);
+        if (monsters != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    monsters.rootNode.detachAllChildren();
+                }
+            });
+        }
+
+        // Clear collision mesh
+        final CollisionState collision = getStateManager().getState(CollisionState.class);
+        if (collision != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    collision.clearMesh();
+                }
+            });
+        }
+
+        // Reset minimap
+        final HudState hud = getStateManager().getState(HudState.class);
+        if (hud != null) {
+            app.enqueue(new Runnable() {
+                public void run() {
+                    hud.setMiniMap(null, null);
+                }
+            });
+        }
+
+        // Reset camera to default position
+        app.enqueue(new Runnable() {
+            public void run() {
+                app.getCamera().setLocation(new Vector3f(0, 1000 * scale, 0));
+                app.getCamera().lookAtDirection(new Vector3f(0, -1, 0), Vector3f.UNIT_Z);
+            }
+        });
+
+        logger.info("Reset completo realizado.");
+    }
+
     // -----------------------------------------------------------------------
     // Load a single arbitrary SMD/ASE file without the full field setup
     // -----------------------------------------------------------------------

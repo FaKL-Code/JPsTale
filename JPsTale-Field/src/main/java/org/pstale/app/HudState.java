@@ -408,6 +408,20 @@ public class HudState extends BaseAppState {
         window.addChild(buttons);
         buttons.addChild(new ActionButton(load, "glass"));
         buttons.addChild(new ActionButton(edit, "glass"));
+        buttons.addChild(new ActionButton(new Action("Resetar") {
+            @Override
+            public void execute(Button b) {
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        LoaderAppState state = getStateManager().getState(LoaderAppState.class);
+                        if (state != null) {
+                            state.resetAll();
+                        }
+                        return null;
+                    }
+                });
+            }
+        }, "glass"));
 
         // Texture folder swap ------------------------------------------------
         window.addChild(new Panel(2, 1, ColorRGBA.Gray, "glass")); // separator
