@@ -26,6 +26,8 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.collision.CollisionResults;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -75,12 +77,19 @@ public class LoaderAppState extends SubAppState {
         task = null;
 
         flag = AssetFactory.loadFlag();
-        loadFlag = AssetFactory.getLoadingFlag();
 
+        // Translated loading label (replaces Korean loading.png)
+        BitmapFont guiFont = app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
+        BitmapText loadingText = new BitmapText(guiFont, false);
+        loadingText.setSize(guiFont.getCharSet().getRenderedSize() * 2);
+        loadingText.setText("Carregando...");
+        loadingText.setColor(ColorRGBA.White);
         float width = app.getCamera().getWidth();
         float height = app.getCamera().getHeight();
-
-        loadFlag.setLocalTranslation(width / 2 - 40, height / 2 - 10, 0);
+        loadingText.setLocalTranslation(
+                width / 2 - loadingText.getLineWidth() / 2,
+                height / 2 + loadingText.getLineHeight() / 2, 0);
+        loadFlag = loadingText;
     }
 
     @Override
