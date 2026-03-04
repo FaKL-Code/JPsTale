@@ -7,7 +7,6 @@ import org.pstale.utils.FileLocator;
 
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.StatsAppState;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
@@ -21,7 +20,7 @@ public class FieldApp extends SimpleApplication implements ActionListener {
     private boolean moveDown = false;
 
     public FieldApp() {
-        super(new LoadingAppState(), new StatsAppState(), new FlyCamAppState(), new ScreenshotAppState());
+        super(new LoadingAppState(), new FlyCamAppState(), new ScreenshotAppState());
     }
 
     @Override
@@ -111,10 +110,6 @@ public class FieldApp extends SimpleApplication implements ActionListener {
             HudState hud = stateManager.getState(HudState.class);
             if (hud != null) {
                 hud.setEnabled(!hud.isEnabled());
-            }
-            StatsAppState stats = stateManager.getState(StatsAppState.class);
-            if (stats != null) {
-                stats.setEnabled(!stats.isEnabled());
             }
         } else if ("ToggleHelp".equals(name) && isPressed) {
             HudState hud = stateManager.getState(HudState.class);
