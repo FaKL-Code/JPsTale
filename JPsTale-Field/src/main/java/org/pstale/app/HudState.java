@@ -64,6 +64,10 @@ public class HudState extends BaseAppState {
 
     private Node guiNode;
 
+    /** Picker info label (bottom-center) */
+    private Label pickerLabel;
+    private Container pickerWindow;
+
     public HudState() {
         guiNode = new Node("LemurGUI");
     }
@@ -96,6 +100,11 @@ public class HudState extends BaseAppState {
          * Painel de bookmarks de camera
          */
         createBookmarkPanel();
+
+        /**
+         * Painel de informacao de textura
+         */
+        createPickerPanel();
 
         if (LoadingAppState.CHECK_SERVER) {
             createCreaturePanel();
@@ -595,6 +604,36 @@ public class HudState extends BaseAppState {
         final CameraBookmarkAppState bm = getStateManager().getState(CameraBookmarkAppState.class);
         if (bm != null) {
             bookmarkList.addAll(bm.getBookmarkNames());
+        }
+    }
+
+    // ========================================================================
+    // Texture Picker Info
+    // ========================================================================
+
+    private void createPickerPanel() {
+        pickerWindow = new Container("glass");
+        pickerWindow.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.75f), 5, 5, 0.02f, false));
+
+        pickerLabel = pickerWindow.addChild(new Label("[T] Seletor de Textura"));
+
+        Vector3f hudSize = new Vector3f(350, 100, 0);
+        hudSize.maxLocal(pickerWindow.getPreferredSize());
+        pickerWindow.setPreferredSize(hudSize);
+
+        // Centered at the top of the screen
+        pickerWindow.setLocalTranslation(width / 2 - 175, height - 10, 0);
+        CursorEventControl.addListenersToSpatial(pickerWindow, new DragHandler());
+        guiNode.attachChild(pickerWindow);
+    }
+
+    /**
+     * Called by {@link TexturePickerAppState} to update the displayed info.
+     * Pass {@code null} to clear.
+     */
+    public void setPickerInfo(String info) {
+        if (pickerLabel != null) {
+            pickerLabel.setText(info != null ? info : "[T] Seletor de Textura");
         }
     }
 }
