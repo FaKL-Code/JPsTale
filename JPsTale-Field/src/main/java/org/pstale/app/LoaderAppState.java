@@ -221,8 +221,10 @@ public class LoaderAppState extends SubAppState {
      * @param folderOverride e.g. {@code "Field/recarten_temp/"}
      */
     public void reloadWithTextureOverride(String folderOverride) {
-        if (task != null) return;
-        if (currentField == null) return;
+        if (task != null)
+            return;
+        if (currentField == null)
+            return;
 
         // Normalise: must end with '/'
         if (folderOverride != null && !folderOverride.isEmpty()
@@ -259,8 +261,10 @@ public class LoaderAppState extends SubAppState {
      * otherwise the folder derived from the current field's map path.
      */
     public String getCurrentTextureFolder() {
-        if (textureOverrideFolder != null) return textureOverrideFolder;
-        if (currentField == null) return "";
+        if (textureOverrideFolder != null)
+            return textureOverrideFolder;
+        if (currentField == null)
+            return "";
         return org.pstale.assets.utils.AssetNameUtils.getFolder(currentField.getName());
     }
 

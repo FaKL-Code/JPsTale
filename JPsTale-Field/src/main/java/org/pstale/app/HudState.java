@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.pstale.app.ModelViewerState.Category;
 import org.pstale.app.ModelViewerState.ModelEntry;
+import org.pstale.assets.utils.AssetNameUtils;
 import org.pstale.entity.field.Field;
 import org.pstale.utils.GameDate;
 
@@ -46,8 +47,6 @@ import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.event.CursorEventControl;
 import com.simsilica.lemur.event.DragHandler;
 import com.simsilica.lemur.style.ElementId;
-
-import org.pstale.assets.utils.AssetNameUtils;
 
 /**
  * 主界面
@@ -403,7 +402,7 @@ public class HudState extends BaseAppState {
         buttons.addChild(new ActionButton(edit, "glass"));
 
         // Texture folder swap ------------------------------------------------
-        window.addChild(new Panel(2, 1, ColorRGBA.Gray, "glass"));  // separator
+        window.addChild(new Panel(2, 1, ColorRGBA.Gray, "glass")); // separator
         window.addChild(new Label("Pasta de Texturas:", "glass"));
         textureOverrideFolderField = new TextField("", "glass");
         textureOverrideFolderField.setPreferredWidth(160);
