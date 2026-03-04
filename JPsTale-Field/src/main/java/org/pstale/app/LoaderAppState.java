@@ -30,6 +30,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix4f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -93,6 +94,12 @@ public class LoaderAppState extends SubAppState {
     Field currentField = null;
     Vector3f center;
 
+    /** Optional folder override for texture lookup (swaps texture preset). */
+    String textureOverrideFolder = null;
+    /** Camera state to restore after a texture-override reload. */
+    private Vector3f savedCamLoc = null;
+    private Quaternion savedCamRot = null;
+
     Texture mapRes = null;
     Texture titleRes = null;
     Spatial mainModel = null;
@@ -110,6 +117,20 @@ public class LoaderAppState extends SubAppState {
             field = null;
 
             loadFlag.removeFromParent();
+
+            // Restore camera position after a texture-override reload
+            if (savedCamLoc != null) {
+                final Vector3f loc = savedCamLoc;
+                final Quaternion rot = savedCamRot;
+                savedCamLoc = null;
+                savedCamRot = null;
+                app.enqueue(new Runnable() {
+                    public void run() {
+                        app.getCamera().setLocation(loc);
+                        app.getCamera().setRotation(rot);
+                    }
+                });
+            }
         }
     }
 
@@ -184,8 +205,63 @@ public class LoaderAppState extends SubAppState {
         // Limpa o cache do AssetManager para forcar releitura do disco
         assetManager.clearCache();
 
+        // Preserva posicao da camera
+        savedCamLoc = app.getCamera().getLocation().clone();
+        savedCamRot = app.getCamera().getRotation().clone();
+
         // Recarrega o mapa
         loadModel(toReload);
+    }
+
+    /**
+     * Reloads the current map using {@code folderOverride} as the texture
+     * directory instead of the folder embedded in the map file path.
+     * Camera position is preserved across the reload.
+     *
+     * @param folderOverride e.g. {@code "Field/recarten_temp/"}
+     */
+    public void reloadWithTextureOverride(String folderOverride) {
+        if (task != null) return;
+        if (currentField == null) return;
+
+        // Normalise: must end with '/'
+        if (folderOverride != null && !folderOverride.isEmpty()
+                && !folderOverride.endsWith("/")) {
+            folderOverride = folderOverride + "/";
+        }
+        textureOverrideFolder = folderOverride;
+
+        // Save camera state so we can restore it after the async reload
+        savedCamLoc = app.getCamera().getLocation().clone();
+        savedCamRot = app.getCamera().getRotation().clone();
+
+        fields.remove(currentField);
+        assetManager.clearCache();
+
+        app.enqueue(new Runnable() {
+            public void run() {
+                rootNode.detachAllChildren();
+            }
+        });
+
+        loadModel(currentField);
+    }
+
+    /**
+     * Clears any active texture folder override (reverts to the map's own folder).
+     */
+    public void clearTextureOverride() {
+        textureOverrideFolder = null;
+    }
+
+    /**
+     * Returns the texture folder currently in use: the override folder if set,
+     * otherwise the folder derived from the current field's map path.
+     */
+    public String getCurrentTextureFolder() {
+        if (textureOverrideFolder != null) return textureOverrideFolder;
+        if (currentField == null) return "";
+        return org.pstale.assets.utils.AssetNameUtils.getFolder(currentField.getName());
     }
 
     Callable<Void> loadTask = new Callable<Void>() {
@@ -198,8 +274,8 @@ public class LoaderAppState extends SubAppState {
             /**
              * 地图主模型
              */
-            final Spatial mainModel = AssetFactory.loadStage3D(field.getName());
-            final Mesh mesh = AssetFactory.loadStage3DMesh(field.getName());
+            final Spatial mainModel = AssetFactory.loadStage3D(field.getName(), textureOverrideFolder);
+            final Mesh mesh = AssetFactory.loadStage3DMesh(field.getName(), textureOverrideFolder);
 
             if (mainModel == null) {
                 logger.debug("加载地图模型失败");

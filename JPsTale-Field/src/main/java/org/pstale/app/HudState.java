@@ -47,6 +47,8 @@ import com.simsilica.lemur.event.CursorEventControl;
 import com.simsilica.lemur.event.DragHandler;
 import com.simsilica.lemur.style.ElementId;
 
+import org.pstale.assets.utils.AssetNameUtils;
+
 /**
  * 主界面
  * 
@@ -58,6 +60,8 @@ public class HudState extends BaseAppState {
     private Container fieldListWindow;
     private ListBox<String> listBox;
     private VersionedList<String> fieldList = new VersionedList<String>();
+    /** Text field showing the active texture folder (editable for preset swap). */
+    private TextField textureOverrideFolderField;
 
     private VersionedReference<Boolean> showAxisRef;
     private VersionedReference<Boolean> showMeshRef;
@@ -354,12 +358,18 @@ public class HudState extends BaseAppState {
                         // 获得被选中的区域
                         Field[] fields = dataState.getFields();
                         final Field field = fields[selected];
+                        // Reset the folder field to the natural folder of this region
+                        if (textureOverrideFolderField != null) {
+                            textureOverrideFolderField.setText(
+                                    AssetNameUtils.getFolder(field.getName()));
+                        }
 
                         // 载入
                         getApplication().enqueue(new Callable<Void>() {
                             public Void call() {
                                 LoaderAppState state = getStateManager().getState(LoaderAppState.class);
                                 if (state != null) {
+                                    state.clearTextureOverride();
                                     state.loadModel(field);
                                 }
                                 return null;
@@ -391,6 +401,29 @@ public class HudState extends BaseAppState {
         window.addChild(buttons);
         buttons.addChild(new ActionButton(load, "glass"));
         buttons.addChild(new ActionButton(edit, "glass"));
+
+        // Texture folder swap ------------------------------------------------
+        window.addChild(new Panel(2, 1, ColorRGBA.Gray, "glass"));  // separator
+        window.addChild(new Label("Pasta de Texturas:", "glass"));
+        textureOverrideFolderField = new TextField("", "glass");
+        textureOverrideFolderField.setPreferredWidth(160);
+        window.addChild(textureOverrideFolderField);
+        window.addChild(new ActionButton(new Action("Trocar Texturas") {
+            @Override
+            public void execute(Button b) {
+                final String textureFolder = textureOverrideFolderField.getText().trim();
+                getApplication().enqueue(new Callable<Void>() {
+                    public Void call() {
+                        LoaderAppState state = getStateManager().getState(LoaderAppState.class);
+                        if (state != null) {
+                            state.reloadWithTextureOverride(textureFolder);
+                        }
+                        return null;
+                    }
+                });
+            }
+        }, "glass"));
+        // -------------------------------------------------------------------
 
         // 限制窗口的最小宽度
         Vector3f hudSize = new Vector3f(160, 0, 0);

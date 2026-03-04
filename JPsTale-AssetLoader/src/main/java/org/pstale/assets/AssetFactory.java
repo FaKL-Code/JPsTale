@@ -247,17 +247,31 @@ public class AssetFactory {
      * @throws Exception
      */
     public static Node loadStage3D(final String name) {
+        return loadStage3D(name, null);
+    }
+
+    /**
+     * Loads the map with an optional texture folder override.
+     * When {@code folderOverride} is non-null it is used instead of the
+     * folder derived from the SMD path, allowing texture presets to be
+     * swapped without changing the map file itself.
+     */
+    public static Node loadStage3D(final String name, final String folderOverride) {
         String smd = AssetNameUtils.changeExt(name, "smd");
         SmdKey key = new SmdKey(smd, SMDTYPE.STAGE3D);
-        setFolder(key.getFolder());
+        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         Stage stage = (Stage) assetManager.loadAsset(key);
         return SceneBuilder.buildScene3D(stage, smd);
     }
 
     public static Mesh loadStage3DMesh(final String name) {
+        return loadStage3DMesh(name, null);
+    }
+
+    public static Mesh loadStage3DMesh(final String name, final String folderOverride) {
         String smd = AssetNameUtils.changeExt(name, "smd");
         SmdKey key = new SmdKey(smd, SMDTYPE.STAGE3D);
-        setFolder(key.getFolder());
+        setFolder(folderOverride != null ? folderOverride : key.getFolder());
         Stage stage = (Stage) assetManager.loadAsset(key);
         return SceneBuilder.buildCollisionMesh(stage);
     }
