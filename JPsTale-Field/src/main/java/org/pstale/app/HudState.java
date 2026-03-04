@@ -850,7 +850,8 @@ public class HudState extends BaseAppState {
         currentModelEntries.clear();
 
         ModelViewerState viewer = getStateManager().getState(ModelViewerState.class);
-        if (viewer == null) return;
+        if (viewer == null)
+            return;
 
         List<ModelEntry> entries = viewer.scanCategory(category);
         currentModelEntries.addAll(entries);
