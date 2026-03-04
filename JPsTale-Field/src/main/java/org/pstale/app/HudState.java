@@ -68,6 +68,10 @@ public class HudState extends BaseAppState {
     private Label pickerLabel;
     private Container pickerWindow;
 
+    /** Help overlay */
+    private Container helpWindow;
+    private boolean helpVisible = false;
+
     public HudState() {
         guiNode = new Node("LemurGUI");
     }
@@ -105,6 +109,11 @@ public class HudState extends BaseAppState {
          * Painel de informacao de textura
          */
         createPickerPanel();
+
+        /**
+         * Painel de ajuda (atalhos)
+         */
+        createHelpPanel();
 
         if (LoadingAppState.CHECK_SERVER) {
             createCreaturePanel();
@@ -360,6 +369,14 @@ public class HudState extends BaseAppState {
         final Slider redSlider = new Slider(model, "glass");
         redSlider.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.5f, 0.1f, 0.1f, 0.5f), 5, 5, 0.02f, false));
         speedRef = window.addChild(redSlider).getModel().createReference();
+
+        window.addChild(new Panel(2, 2, ColorRGBA.White, "glass")).setUserData(LayerComparator.LAYER, 2);
+        window.addChild(new ActionButton(new Action("? Atalhos (H)") {
+            @Override
+            public void execute(Button b) {
+                toggleHelp();
+            }
+        }, "glass"));
 
         // 限制窗口的最小宽度
         Vector3f hudSize = new Vector3f(200, 0, 0);
@@ -634,6 +651,67 @@ public class HudState extends BaseAppState {
     public void setPickerInfo(String info) {
         if (pickerLabel != null) {
             pickerLabel.setText(info != null ? info : "[T] Seletor de Textura");
+        }
+    }
+
+    // ========================================================================
+    // Help / Keybind Overlay
+    // ========================================================================
+
+    private void createHelpPanel() {
+        helpWindow = new Container("glass");
+        helpWindow.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.85f), 5, 5, 0.02f, false));
+
+        helpWindow.addChild(new Label("Atalhos do Teclado", new ElementId("title"), "glass"));
+        helpWindow.addChild(new Panel(2, 2, ColorRGBA.White, "glass")).setUserData(LayerComparator.LAYER, 2);
+
+        String[][] binds = {
+                { "W A S D", "Mover camera" },
+                { "Mouse Direito", "Rotacionar camera" },
+                { "Scroll", "Zoom in / out" },
+                { "Espaco", "Subir (eixo Y)" },
+                { "Ctrl", "Descer (eixo Y)" },
+                { "", "" },
+                { "T", "Ativar seletor de textura" },
+                { "Clique Meio", "Selecionar textura" },
+                { "", "" },
+                { "F1", "Mostrar / Esconder HUD" },
+                { "H", "Mostrar / Esconder esta ajuda" },
+                { "F12", "Capturar tela (screenshot)" },
+        };
+
+        for (String[] bind : binds) {
+            if (bind[0].isEmpty()) {
+                helpWindow.addChild(new Label(" "));
+                continue;
+            }
+            Container row = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.First, FillMode.Even));
+            Label key = new Label(bind[0]);
+            key.setColor(new ColorRGBA(1f, 0.9f, 0.4f, 1f));
+            row.addChild(key);
+            row.addChild(new Label("  " + bind[1]));
+            helpWindow.addChild(row);
+        }
+
+        helpWindow.addChild(new Label(" "));
+        Label hint = helpWindow.addChild(new Label("Pressione H para fechar"));
+        hint.setColor(new ColorRGBA(0.6f, 0.6f, 0.6f, 1f));
+
+        Vector3f hudSize = new Vector3f(300, 0, 0);
+        hudSize.maxLocal(helpWindow.getPreferredSize());
+        helpWindow.setPreferredSize(hudSize);
+
+        helpWindow.setLocalTranslation(width / 2 - 150, height / 2 + 150, 1);
+        // Starts hidden
+        helpVisible = false;
+    }
+
+    public void toggleHelp() {
+        helpVisible = !helpVisible;
+        if (helpVisible) {
+            guiNode.attachChild(helpWindow);
+        } else {
+            helpWindow.removeFromParent();
         }
     }
 }

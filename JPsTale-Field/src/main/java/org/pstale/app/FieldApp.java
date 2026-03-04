@@ -92,6 +92,12 @@ public class FieldApp extends SimpleApplication implements ActionListener {
         inputManager.addMapping("VerticalDown", new KeyTrigger(KeyInput.KEY_LCONTROL),
                 new KeyTrigger(KeyInput.KEY_RCONTROL));
         inputManager.addListener(this, "VerticalUp", "VerticalDown");
+
+        // F1 = toggle HUD visibility for screenshots
+        inputManager.addMapping("ToggleHUD", new KeyTrigger(KeyInput.KEY_F1));
+        // H = toggle keybind help
+        inputManager.addMapping("ToggleHelp", new KeyTrigger(KeyInput.KEY_H));
+        inputManager.addListener(this, "ToggleHUD", "ToggleHelp");
     }
 
     @Override
@@ -100,6 +106,21 @@ public class FieldApp extends SimpleApplication implements ActionListener {
             moveUp = isPressed;
         } else if ("VerticalDown".equals(name)) {
             moveDown = isPressed;
+        } else if ("ToggleHUD".equals(name) && isPressed) {
+            // Toggle all GUI elements
+            HudState hud = stateManager.getState(HudState.class);
+            if (hud != null) {
+                hud.setEnabled(!hud.isEnabled());
+            }
+            StatsAppState stats = stateManager.getState(StatsAppState.class);
+            if (stats != null) {
+                stats.setEnabled(!stats.isEnabled());
+            }
+        } else if ("ToggleHelp".equals(name) && isPressed) {
+            HudState hud = stateManager.getState(HudState.class);
+            if (hud != null) {
+                hud.toggleHelp();
+            }
         }
     }
 
