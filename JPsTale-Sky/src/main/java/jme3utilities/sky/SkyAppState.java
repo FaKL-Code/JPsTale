@@ -198,7 +198,7 @@ public class SkyAppState extends BaseAppState {
     /**
      * 初始为 6:00 a.m.
      */
-    final private TimeOfDay timeOfDay = new TimeOfDay(6.0f);
+    final private TimeOfDay timeOfDay = new TimeOfDay(12.75f); // 12:45
 
     public SkyAppState() {
         rootNode = new Node("sky node");
@@ -388,7 +388,7 @@ public class SkyAppState extends BaseAppState {
      * Alter the opacity of all cloud layers.
      *
      * @param newAlpha
-     *            desired opacity of the cloud layers (&le;1, &ge;0)
+     *                 desired opacity of the cloud layers (&le;1, &ge;0)
      */
     public void setCloudiness(float newAlpha) {
         for (int layer = 0; layer < numCloudLayers; layer++) {
@@ -402,8 +402,8 @@ public class SkyAppState extends BaseAppState {
      * clouds-only dome.
      *
      * @param newYOffset
-     *            desired vertical offset as a fraction of the dome height
-     *            (&lt;1, &ge;0 when flattening&gt;0; 0 when flattening=0)
+     *                   desired vertical offset as a fraction of the dome height
+     *                   (&lt;1, &ge;0 when flattening&gt;0; 0 when flattening=0)
      */
     public void setCloudYOffset(float newYOffset) {
         if (cloudsOnlyDome == null) {
@@ -426,9 +426,9 @@ public class SkyAppState extends BaseAppState {
      * Alter an object's color map texture.
      *
      * @param objectIndex
-     *            which object (&ge;0)
+     *                    which object (&ge;0)
      * @param newColorMap
-     *            texture to apply (not null)
+     *                    texture to apply (not null)
      */
     public void setObjectTexture(int objectIndex, Texture newColorMap) {
         topMaterial.addObject(objectIndex, newColorMap);
@@ -438,8 +438,8 @@ public class SkyAppState extends BaseAppState {
      * Alter the stabilize flag.
      *
      * @param newState
-     *            true to counteract rotation of the controlled node, false to
-     *            allow rotation
+     *                 true to counteract rotation of the controlled node, false to
+     *                 allow rotation
      */
     public void setStabilizeFlag(boolean newState) {
         stabilizeFlag = newState;
@@ -452,8 +452,8 @@ public class SkyAppState extends BaseAppState {
      * are near the horizontal.
      *
      * @param newAngle
-     *            desired angle from the zenith to the rim of the top dome (in
-     *            radians, &lt;1.785, &gt;0)
+     *                 desired angle from the zenith to the rim of the top dome (in
+     *                 radians, &lt;1.785, &gt;0)
      */
     public void setTopVerticalAngle(float newAngle) {
         if (!(newAngle > 0f && newAngle < 1.785f)) {
@@ -476,11 +476,11 @@ public class SkyAppState extends BaseAppState {
      * The return value is used in calculating ambient light intensity.
      *
      * @param baseColor
-     *            (not null, unaffected, alpha is ignored)
+     *                  (not null, unaffected, alpha is ignored)
      * @param sunUp
-     *            true if sun is above the horizon, otherwise false
+     *                  true if sun is above the horizon, otherwise false
      * @param moonUp
-     *            true if moon is above the horizon, otherwise false
+     *                  true if moon is above the horizon, otherwise false
      * @return new instance (alpha is undefined)
      */
     protected ColorRGBA updateCloudsColor(ColorRGBA baseColor, boolean sunUp, boolean moonUp) {
@@ -528,7 +528,7 @@ public class SkyAppState extends BaseAppState {
      * Alter the phase of the moon to a pre-set value.
      *
      * @param newPreset
-     *            (or null to hide the moon)
+     *                  (or null to hide the moon)
      */
     final public void setPhase(LunarPhase newPreset) {
         if (newPreset == LunarPhase.CUSTOM) {
@@ -556,7 +556,7 @@ public class SkyAppState extends BaseAppState {
      * Update the cloud layers. (Invoked once per frame.)
      *
      * @param elapsedTime
-     *            since the previous update (in seconds, &ge;0)
+     *                    since the previous update (in seconds, &ge;0)
      */
     private void updateClouds(float elapsedTime) {
         assert elapsedTime >= 0f : elapsedTime;
@@ -574,7 +574,7 @@ public class SkyAppState extends BaseAppState {
      * coordinates, accounting for the dome's flattening and vertical offset.
      *
      * @param mainDirection
-     *            (unit vector with non-negative y-component)
+     *                      (unit vector with non-negative y-component)
      * @return new unit vector
      */
     private Vector3f intersectCloudDome(Vector3f mainDirection) {
@@ -646,9 +646,9 @@ public class SkyAppState extends BaseAppState {
      * relative to the sky's texture.
      *
      * @param longitude
-     *            the moon's celestial longitude (in radians)
+     *                  the moon's celestial longitude (in radians)
      * @param uvCenter
-     *            texture coordinates of the moon's center (not null)
+     *                  texture coordinates of the moon's center (not null)
      * @return new unit vector with its x-component equal to the cosine of the
      *         rotation angle and its y-component equal to the sine of the
      *         rotation angle
@@ -710,9 +710,9 @@ public class SkyAppState extends BaseAppState {
      * and shadows.
      *
      * @param sunDirection
-     *            world direction to the sun (length=1)
+     *                      world direction to the sun (length=1)
      * @param moonDirection
-     *            world direction to the moon (length=1 or null)
+     *                      world direction to the moon (length=1 or null)
      */
     private void updateLighting(Vector3f sunDirection, Vector3f moonDirection) {
         assert sunDirection != null;
@@ -864,9 +864,9 @@ public class SkyAppState extends BaseAppState {
      * Update the colors of the sun and moon based on their altitudes.
      *
      * @param sineSolarAltitude
-     *            (&le;1, &ge:-1)
+     *                          (&le;1, &ge:-1)
      * @param sineLunarAltitude
-     *            (&le;1, &ge:-1)
+     *                          (&le;1, &ge:-1)
      */
     private void updateObjectColors(float sineSolarAltitude, float sineLunarAltitude) {
         assert sineSolarAltitude <= 1f : sineSolarAltitude;

@@ -148,8 +148,10 @@ public class FieldApp extends SimpleApplication implements ActionListener, Analo
 
         if ("ScrollZoomIn".equals(name)) {
             fov -= value * FOV_ZOOM_SPEED; // reduce FOV → zoom in
-        } else {
+        } else if ("ScrollZoomOut".equals(name)) {
             fov += value * FOV_ZOOM_SPEED; // increase FOV → zoom out
+        } else {
+            return; // ignore all other analog events (ToggleHUD, VerticalUp, etc.)
         }
         fov = Math.max(MIN_FOV, Math.min(MAX_FOV, fov));
 

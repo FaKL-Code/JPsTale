@@ -624,8 +624,8 @@ public class HudState extends BaseAppState {
         // Time label
         timeLabel = window.addChild(new Label("00:00"));
 
-        // Time slider (0..1 normalized)
-        DefaultRangedValueModel timeModel = new DefaultRangedValueModel(0, 1, 0.25);
+        // Time slider (0..1 normalized) — start at 12:45 (12.75/24 ≈ 0.53125)
+        DefaultRangedValueModel timeModel = new DefaultRangedValueModel(0, 1, 12.75 / 24.0);
         timeSlider = window.addChild(new Slider(timeModel, "glass"));
         timeSliderRef = timeSlider.getModel().createReference();
 
