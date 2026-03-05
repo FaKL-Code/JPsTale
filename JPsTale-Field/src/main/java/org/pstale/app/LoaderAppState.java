@@ -186,6 +186,40 @@ public class LoaderAppState extends SubAppState {
     Field field = null;
 
     /**
+     * Limpa toda a geometria da cena: rootNode, sub-states
+     * (ambient, fieldgate, warpgate, monsters), collision e minimap.
+     * Deve ser chamado na thread jME.
+     */
+    private void cleanupScene() {
+        rootNode.detachAllChildren();
+
+        AmbientAppState ambient = getStateManager().getState(AmbientAppState.class);
+        if (ambient != null) {
+            ambient.rootNode.detachAllChildren();
+        }
+        FieldgateAppState fieldgate = getStateManager().getState(FieldgateAppState.class);
+        if (fieldgate != null) {
+            fieldgate.rootNode.detachAllChildren();
+        }
+        WarpgateAppState warpgate = getStateManager().getState(WarpgateAppState.class);
+        if (warpgate != null) {
+            warpgate.rootNode.detachAllChildren();
+        }
+        MonsterAppState monsters = getStateManager().getState(MonsterAppState.class);
+        if (monsters != null) {
+            monsters.rootNode.detachAllChildren();
+        }
+        CollisionState collision = getStateManager().getState(CollisionState.class);
+        if (collision != null) {
+            collision.clearMesh();
+        }
+        HudState hud = getStateManager().getState(HudState.class);
+        if (hud != null) {
+            hud.setMiniMap(null, null);
+        }
+    }
+
+    /**
      * Recarregar o mapa atual, limpando o cache de assets para forcar
      * a releitura dos arquivos do disco.
      */
@@ -204,12 +238,8 @@ public class LoaderAppState extends SubAppState {
         // Remove do cache para permitir novo carregamento
         fields.remove(toReload);
 
-        // Limpa os filhos do rootNode (geometria do mapa atual)
-        app.enqueue(new Runnable() {
-            public void run() {
-                rootNode.detachAllChildren();
-            }
-        });
+        // Limpa toda a geometria da cena (ja estamos na thread jME)
+        cleanupScene();
 
         // Limpa o cache do AssetManager para forcar releitura do disco
         assetManager.clearCache();
@@ -247,13 +277,11 @@ public class LoaderAppState extends SubAppState {
         savedCamRot = app.getCamera().getRotation().clone();
 
         fields.remove(currentField);
-        assetManager.clearCache();
 
-        app.enqueue(new Runnable() {
-            public void run() {
-                rootNode.detachAllChildren();
-            }
-        });
+        // Limpa toda a geometria da cena (ja estamos na thread jME)
+        cleanupScene();
+
+        assetManager.clearCache();
 
         loadModel(currentField);
     }
@@ -285,12 +313,8 @@ public class LoaderAppState extends SubAppState {
         mapRes = null;
         titleRes = null;
 
-        // Detach all scene geometry
-        app.enqueue(new Runnable() {
-            public void run() {
-                rootNode.detachAllChildren();
-            }
-        });
+        // Limpa toda a geometria da cena (ja estamos na thread jME)
+        cleanupScene();
 
         // Clear asset cache so everything is re-read from disk
         assetManager.clearCache();
@@ -301,67 +325,9 @@ public class LoaderAppState extends SubAppState {
             music.setSong(null);
         }
 
-        // Clear sub-state visuals (ambient spheres, gate markers, etc.)
-        final AmbientAppState ambient = getStateManager().getState(AmbientAppState.class);
-        if (ambient != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    ambient.rootNode.detachAllChildren();
-                }
-            });
-        }
-        final FieldgateAppState fieldgate = getStateManager().getState(FieldgateAppState.class);
-        if (fieldgate != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    fieldgate.rootNode.detachAllChildren();
-                }
-            });
-        }
-        final WarpgateAppState warpgate = getStateManager().getState(WarpgateAppState.class);
-        if (warpgate != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    warpgate.rootNode.detachAllChildren();
-                }
-            });
-        }
-        final MonsterAppState monsters = getStateManager().getState(MonsterAppState.class);
-        if (monsters != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    monsters.rootNode.detachAllChildren();
-                }
-            });
-        }
-
-        // Clear collision mesh
-        final CollisionState collision = getStateManager().getState(CollisionState.class);
-        if (collision != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    collision.clearMesh();
-                }
-            });
-        }
-
-        // Reset minimap
-        final HudState hud = getStateManager().getState(HudState.class);
-        if (hud != null) {
-            app.enqueue(new Runnable() {
-                public void run() {
-                    hud.setMiniMap(null, null);
-                }
-            });
-        }
-
         // Reset camera to default position
-        app.enqueue(new Runnable() {
-            public void run() {
-                app.getCamera().setLocation(new Vector3f(0, 1000 * scale, 0));
-                app.getCamera().lookAtDirection(new Vector3f(0, -1, 0), Vector3f.UNIT_Z);
-            }
-        });
+        app.getCamera().setLocation(new Vector3f(0, 1000 * scale, 0));
+        app.getCamera().lookAtDirection(new Vector3f(0, -1, 0), Vector3f.UNIT_Z);
 
         logger.info("Reset completo realizado.");
     }
@@ -385,11 +351,9 @@ public class LoaderAppState extends SubAppState {
             return;
         smdToLoad = modelPath;
 
-        app.enqueue(new Runnable() {
-            public void run() {
-                rootNode.detachAllChildren();
-            }
-        });
+        // Limpa toda a geometria da cena (ja estamos na thread jME)
+        cleanupScene();
+
         assetManager.clearCache();
         task = loadSpecificTask;
     }
@@ -433,133 +397,137 @@ public class LoaderAppState extends SubAppState {
 
         @Override
         public Void call() throws Exception {
-            if (field == null)
-                return null;
+            try {
+                if (field == null)
+                    return null;
 
-            /**
-             * 地图主模型
-             */
-            final Spatial mainModel = AssetFactory.loadStage3D(field.getName(), textureOverrideFolder);
-            final Mesh mesh = AssetFactory.loadStage3DMesh(field.getName(), textureOverrideFolder);
+                /**
+                 * 地图主模型
+                 */
+                final Spatial mainModel = AssetFactory.loadStage3D(field.getName(), textureOverrideFolder);
+                final Mesh mesh = AssetFactory.loadStage3DMesh(field.getName(), textureOverrideFolder);
 
-            if (mainModel == null) {
-                logger.debug("加载地图模型失败");
-                return null;
-            }
-
-            // 加载成功
-            mainModel.scale(scale);
-            app.enqueue(new Runnable() {
-                public void run() {
-                    rootNode.attachChild(mainModel);
+                if (mainModel == null) {
+                    logger.debug("加载地图模型失败");
+                    return null;
                 }
-            });
 
-            // 将网格缩小
-            FloatBuffer fb = (FloatBuffer) mesh.getBuffer(Type.Position).getData();
-            for (int i = 0; i < fb.limit(); i++) {
-                fb.put(i, fb.get(i) * scale);
-            }
-            mesh.updateBound();
-
-            // 计算地图的中心点
-            if (field.getCenter().length() == 0) {
-                center = mesh.getBound().getCenter();
-                field.getCenter().set(center.x, center.z);
-            } else {
-                Vector2f center2f = field.getCenter();
-                center = new Vector3f(center2f.x, 0, center2f.y).multLocal(scale);
-                center.y = 1000;
-            }
-
-            /**
-             * 地图的碰撞网格
-             */
-            final CollisionState collisionState = getStateManager().getState(CollisionState.class);
-            if (collisionState != null) {
+                // 加载成功
+                mainModel.scale(scale);
                 app.enqueue(new Runnable() {
                     public void run() {
-                        collisionState.addMesh(mesh);
-                        collisionState.setPlayerLocation(center);
+                        rootNode.attachChild(mainModel);
                     }
                 });
-            }
 
-            /**
-             * 地图的其他舞台物体
-             */
-            // setStageObject(field);
+                // 将网格缩小
+                FloatBuffer fb = (FloatBuffer) mesh.getBuffer(Type.Position).getData();
+                for (int i = 0; i < fb.limit(); i++) {
+                    fb.put(i, fb.get(i) * scale);
+                }
+                mesh.updateBound();
 
-            /**
-             * 小地图
-             */
-            setMiniMap(field);
-
-            /**
-             * 背景音乐
-             */
-            playBGM(field);
-
-            /**
-             * 天空
-             */
-            final SkyboxAppState skyboxState = getStateManager().getState(SkyboxAppState.class);
-            if (skyboxState != null) {
-                app.enqueue(new Runnable() {
-                    public void run() {
-                        skyboxState.loadSky(field);
-                    }
-                });
-            }
-
-            /**
-             * 环境音效
-             */
-            setupAmbient(field);
-
-            /**
-             * 门户
-             */
-            final FieldgateAppState fieldgateAppState = getStateManager().getState(FieldgateAppState.class);
-            if (fieldgateAppState != null) {
-                app.enqueue(new Runnable() {
-                    public void run() {
-                        fieldgateAppState.load(field.getFieldGate());
-                    }
-                });
-            }
-
-            /**
-             * 传送门
-             */
-            final WarpgateAppState warpgateAppState = getStateManager().getState(WarpgateAppState.class);
-            if (warpgateAppState != null) {
-                app.enqueue(new Runnable() {
-                    public void run() {
-                        warpgateAppState.load(field.getWarpGate());
-                    }
-                });
-            }
-
-            if (LoadingAppState.CHECK_SERVER) {
-                /**
-                 * 刷怪点
-                 */
-                setupSpawnPoints(field, mesh);
+                // 计算地图的中心点
+                if (field.getCenter().length() == 0) {
+                    center = mesh.getBound().getCenter();
+                    field.getCenter().set(center.x, center.z);
+                } else {
+                    Vector2f center2f = field.getCenter();
+                    center = new Vector3f(center2f.x, 0, center2f.y).multLocal(scale);
+                    center.y = 1000;
+                }
 
                 /**
-                 * 生态
+                 * 地图的碰撞网格
                  */
-                setupCreatures(field);
+                final CollisionState collisionState = getStateManager().getState(CollisionState.class);
+                if (collisionState != null) {
+                    app.enqueue(new Runnable() {
+                        public void run() {
+                            collisionState.addMesh(mesh);
+                            collisionState.setPlayerLocation(center);
+                        }
+                    });
+                }
 
                 /**
-                 * NPC
+                 * 地图的其他舞台物体
                  */
-                setupNpc(field);
-            }
+                // setStageObject(field);
 
-            // 设置为空
-            fields.add(field);
+                /**
+                 * 小地图
+                 */
+                setMiniMap(field);
+
+                /**
+                 * 背景音乐
+                 */
+                playBGM(field);
+
+                /**
+                 * 天空
+                 */
+                final SkyboxAppState skyboxState = getStateManager().getState(SkyboxAppState.class);
+                if (skyboxState != null) {
+                    app.enqueue(new Runnable() {
+                        public void run() {
+                            skyboxState.loadSky(field);
+                        }
+                    });
+                }
+
+                /**
+                 * 环境音效
+                 */
+                setupAmbient(field);
+
+                /**
+                 * 门户
+                 */
+                final FieldgateAppState fieldgateAppState = getStateManager().getState(FieldgateAppState.class);
+                if (fieldgateAppState != null) {
+                    app.enqueue(new Runnable() {
+                        public void run() {
+                            fieldgateAppState.load(field.getFieldGate());
+                        }
+                    });
+                }
+
+                /**
+                 * 传送门
+                 */
+                final WarpgateAppState warpgateAppState = getStateManager().getState(WarpgateAppState.class);
+                if (warpgateAppState != null) {
+                    app.enqueue(new Runnable() {
+                        public void run() {
+                            warpgateAppState.load(field.getWarpGate());
+                        }
+                    });
+                }
+
+                if (LoadingAppState.CHECK_SERVER) {
+                    /**
+                     * 刷怪点
+                     */
+                    setupSpawnPoints(field, mesh);
+
+                    /**
+                     * 生态
+                     */
+                    setupCreatures(field);
+
+                    /**
+                     * NPC
+                     */
+                    setupNpc(field);
+                }
+
+                // 设置为空
+                fields.add(field);
+            } catch (Exception e) {
+                logger.error("Erro ao carregar mapa: {}", field != null ? field.getName() : "null", e);
+            }
             return null;
         }
 
